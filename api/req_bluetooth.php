@@ -1,5 +1,15 @@
 <?php
 include(dirname(dirname(__FILE__)).'/configurations/config.php');
+
+// Check Error
+//ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
+
+// Datetime in ISO format
+//date_default_timezone_set('Asia/Singapore');
+$datetime_now = date("c");
+
 $response = array();
 if($_REQUEST['action'] == 'time' && $_REQUEST['method'] == 'get')
 {
@@ -24,7 +34,7 @@ isset($_REQUEST['user_id']) && $_REQUEST['user_id'] != '')
 	$response['error'] = 'Invalid Parameters';
 	
 	$collection = $app_data->users;
-	//$user_details = $collection->findOne(array('user_id'=>(int)$_REQUEST['user_id']));
+	$user_details = $collection->findOne(array('user_id'=>(int)$_REQUEST['user_id']));
 	
 	if(isset($user_details['user_id']))
 
@@ -392,6 +402,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 }
 
 //List Locks under Permit
+// Updated 2020-03-04
 if($_REQUEST['action'] == 'list_bluetooth_lock' && 
 isset($_REQUEST['user_id']) && $_REQUEST['user_id'] != '' && 
 isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
@@ -696,7 +707,8 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 					
 					$collection_locks = new MongoCollection($app_data, 'locks');					
 					$cursor_locks = $collection_locks->find( array( 'lock_group_id' => $lock_group_id) ); // Find using lock group id
-					if($cursor_locks->count() > 0) { 
+
+                    if($cursor_locks->count() > 0) {
 						$response['status'] = 'true';
 						$x=0;
 						foreach($cursor_locks as $locks)
@@ -712,6 +724,23 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 								$response['locks'][$x]['lock_group_id'] = $locks['lock_group_id'];
 								$response['locks'][$x]['log_number'] = $locks['log_number'];
 								$response['locks'][$x]['site_id'] = $locks['site_id'];
+
+                                // Added to check if lock needs approval
+                                $collection_approval_for_lock = $app_data->approval_for_lock;
+                                $approval_for_lock = $collection_approval_for_lock->findOne(array('lock_id'=>(int)$locks['lock_ID']));
+                                //Check result of approval for lock
+                                //$response['approval_for_lock'] = $approval_for_lock;
+
+                                if(isset($approval_for_lock)) {
+                                        $response['locks'][$x]['require_admin_approval'] = $approval_for_lock['require_admin_approval'];
+                                        $response['locks'][$x]['require_subadmin_approval'] = $approval_for_lock['require_subadmin_approval'];
+                                }
+                                else{
+                                    $response['locks'][$x]['require_admin_approval'] = null;
+                                    $response['locks'][$x]['require_subadmin_approval'] = null;
+                                }
+
+
 							}
 							$x++;
 						}
@@ -745,24 +774,28 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 }
 	
 //Open Locks under Permit
+// Updated 2020-03-04
 if($_REQUEST['action'] == 'open_bluetooth_lock' && 
 isset($_REQUEST['user_id']) && $_REQUEST['user_id'] != '' && 
 isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '' &&
+isset($_REQUEST['permit_id']) && $_REQUEST['permit_id'] != '' &&
 isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
 {
 	$user_id = $_REQUEST['user_id'];
 	$lock_id = $_REQUEST['lock_id'];
-	$response['open_lock'] = 'no';	
-	
-	$collection = $app_data->users;
+
+    $response['open_lock'] = false;
+
+    $response['status'] = 'false';
+    $response['error'] = 'Invalid Parameters';
+
+    $response['user_id'] = $_REQUEST['user_id'];
+    $response['company_id'] = $_REQUEST['company_id'];
+    $response['permit_id'] = $_REQUEST['permit_id'];
+
+    $collection = $app_data->users;
 	$user_details = $collection->findOne(array('user_id'=>(int)$_REQUEST['user_id']));
-	
-	$response['status'] = 'false';
-	$response['error'] = 'Invalid Parameters';
-	
-	$collection = $app_data->users;
-	$user_details = $collection->findOne(array('user_id'=>(int)$_REQUEST['user_id']));
-	
+
 	if(isset($user_details['user_id']))
 	{
 		if($user_details['role'] == 1)
@@ -774,13 +807,16 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
 			$com = array(); //Company details array
 			$collection1 = new MongoCollection($app_data, 'company');
 			//$companies = $collection1->find();
-			$companies = $collection1->find(  );
+			$companies = $collection1->find();
 			if($companies->count() > 0) 
 			{
 				foreach($companies as $company)
 				{
+				    //Find if user is in company
 					$users = json_decode($company['user_id']);
-					if(in_array($_REQUEST['user_id'],$users))
+					$user_list = Array();
+                    array_push($user_list, (int)$company['user_id']);
+					if(in_array($_REQUEST['user_id'],$user_list))
 					{						
 						$com['company_ID'] = $company['company_ID']; //Put in company details array
 					}
@@ -879,104 +915,74 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
 					}
 				}
 			}
-			
-			$collection = new MongoCollection($app_data, 'permit_to_enter');
-			//$C_Query = array( 'company_id' => $company_ID );
-			//$cursor_pte = $collection->find(array('company_id'=> $C_Query));
-			$criteria_pte = array(	
-				'$and' => array( 
-					array( 'company_id'=> $_REQUEST['company_id'] ),
-					//array( 'company_id'=> $demo_pa_company_id ),
-					array( 'user_id' => $_REQUEST['user_id'] )
-				)
-			);	
-			$cursor_pte = $collection->find($criteria_pte);
-			
-			//$cursor_pte = $collection->find();
-			
-			if($cursor_pte->count() > 0) { 
-				//$response['status'] = 'true';
+
+            $collection_pte = new MongoCollection($app_data, 'permit_to_enter');
+            //$C_Query = array( 'company_id' => $company_ID );
+            //$cursor_pte = $collection->find(array('company_id'=> $C_Query));
+            $criteria_pte = array(
+                '$and' => array(
+                    array( 'company_id'=> (String) $_REQUEST['company_id'] ),
+                    //array( 'company_id'=> $demo_pa_company_id ),
+                    //array( 'permit_id' => (int) $_REQUEST['permit_id'] ),
+                    array( 'user_id' => (string) $_REQUEST['user_id'] )
+                )
+            );
+
+            $cursor_pte = $collection_pte->find($criteria_pte);
+            //$cursor_pte = $collection->find();
+
+            if($cursor_pte->count() > 0) {
+                //$response['status'] = 'true';
+                $response['permit_found'] = true;
 				$c = 0;
 				foreach($cursor_pte as $permit_to_enter)
 				{
 					unset($permit_to_enter['_id']);
-					$permit_id = $permit_to_enter['permit_id'];	
-									
+					$permit_id = $permit_to_enter['permit_id'];
+                    $response['permit_id'][$c] = $permit_to_enter['permit_id'];
+
 					if($permit_to_enter['permit_id'] != $_REQUEST['permit_id'])
 					{
-						//calculation of Duration
-						$start_date = new DateTime( date('d-m-Y H:i',strtotime( $permit_to_enter['registered_time'] )) );
-						$since_start = $start_date->diff(new DateTime( date('d-m-Y H:i') ));
-						
-						/*echo date('d F Y, H:i') . '---' . $permit_to_enter['registered_time'] . '-----';
-						echo $since_start->days.' days total -- ';
-						echo $since_start->y.' years -- ';
-						echo $since_start->m.' months -- ';
-						echo $since_start->d.' days -- ';
-						echo $since_start->h.' hours -- ';
-						echo $since_start->i.' minutes -- ';
-						echo $since_start->s.' seconds---';
-						echo '<br>';*/
-						
-						if($since_start->i <= 10 && $since_start->d == 0 && $since_start->h == 0)
-						{
-							$permit_to_enter['duration'] = 'NOW';
-							//echo 'Now<br><br>';
-						}
-						else if($since_start->d == 0 && $since_start->h >= 0)
-						{
-							$permit_to_enter['duration'] = date('H:i', strtotime( $permit_to_enter['registered_time']));
-							//echo 'Before 1 day<br><br>';
-						}
-						else if($since_start->days == 1)
-						{
-							$permit_to_enter['duration'] = 'Yesterday';
-							//echo 'Yesterday<br><br>';
-						}
-						else if($since_start->days >= 2)
-						{
-							$permit_to_enter['duration'] = date('d/m', strtotime( $permit_to_enter['registered_time']));
-							//echo  date('d/m', strtotime( $permit_to_enter['registered_time'])) . ' <br><br>';
-						}
-						else { 
-							$permit_to_enter['duration'] = '--/--'; 
-						}
-						//End Duration Calculation
-						
 						$permit_date_from = $permit_to_enter['date_from'];
 						$permit_date_to = $permit_to_enter['date_to'];
 						$permit_time_from = $permit_to_enter['time_from'];
 						$permit_time_to = $permit_to_enter['time_to'];
 						//Show Data
 						//$response['data'][] = $permit_to_enter;
-						/*
-						$response['permit'][$c]['permit_id'] = $permit_to_enter['permit_id'];
-						$response['permit'][$c]['user_id'] = $permit_to_enter['user_id'];
-						$response['permit'][$c]['date_from'] = $permit_to_enter['date_from'];
-						$response['permit'][$c]['date_to'] = $permit_to_enter['date_to'];
-						$response['permit'][$c]['time_from'] = $permit_to_enter['time_from'];
-						$response['permit'][$c]['time_to'] = $permit_to_enter['time_to'];
-						$response['permit'][$c]['registered_time'] = $permit_to_enter['registered_time'];
-						$response['permit'][$c]['approved'] = $permit_to_enter['approved'];
-						$response['permit'][$c]['subadmin_approved'] = $permit_to_enter['subadmin_approved'];
-						$response['permit'][$c]['admin_approved'] = $permit_to_enter['admin_approved'];
-						$response['permit'][$c]['token'] = $permit_to_enter['token'];
-						$response['permit'][$c]['duration'] = $permit_to_enter['duration'];
-						
-						
-						$c++;
-						*/
-					}			
+
+//						$response['permit'][$c] = $permit_to_enter;
+//						$response['permit'][$c]['user_id'] = $permit_to_enter['user_id'];
+//						$response['permit'][$c]['date_from'] = $permit_to_enter['date_from'];
+//						$response['permit'][$c]['date_to'] = $permit_to_enter['date_to'];
+//						$response['permit'][$c]['time_from'] = $permit_to_enter['time_from'];
+//						$response['permit'][$c]['time_to'] = $permit_to_enter['time_to'];
+//						$response['permit'][$c]['registered_time'] = $permit_to_enter['registered_time'];
+//						$response['permit'][$c]['approved'] = $permit_to_enter['approved'];
+//						$response['permit'][$c]['subadmin_approved'] = $permit_to_enter['subadmin_approved'];
+//						$response['permit'][$c]['admin_approved'] = $permit_to_enter['admin_approved'];
+//						$response['permit'][$c]['token'] = $permit_to_enter['token'];
+//						$response['permit'][$c]['duration'] = $permit_to_enter['duration'];
+//
+//						$c++;
+
+					}
+					else if ($permit_to_enter['permit_id'] == $_REQUEST['permit_id']){
+                        $permit_date_from = $permit_to_enter['date_from'];
+                        $permit_date_to = $permit_to_enter['date_to'];
+                        $permit_time_from = $permit_to_enter['time_from'];
+                        $permit_time_to = $permit_to_enter['time_to'];
+                    }
 					
 				}
 			}
 			else
 			{
+                $response['permit_found'] = false;
 				$response['status'] = 'false';
 				$response['error'] = 'Invalid Company ID';
 				exit(json_encode($response));
 			}
-			
+
 			//Show Time Now
 			$date_time_now = date("Y-m-d h:i:sa");
 			//$date_now = date("d-m-Y");
@@ -1017,73 +1023,170 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
 			//Permit Date Conversion
 			$permit_date_from_before_format = DateTime::createFromFormat($date_format, $permit_date_from);
 			$permit_date_from_after_format =  $permit_date_from_before_format->format('d-m-Y');
-			$permit_date_from_compare =  strtotime($permit_date_from_after_format);
+			$permit_date_from_compare =  strtotime($permit_date_from_after_format); // ready for comparison
 			$permit_date_to_before_format = DateTime::createFromFormat($date_format, $permit_date_to);
 			$permit_date_to_after_format =  $permit_date_to_before_format->format('d-m-Y');
-			$permit_date_to_compare =  strtotime($permit_date_to_after_format);			
-			
+			$permit_date_to_compare =  strtotime($permit_date_to_after_format);	// ready for comparison
+
+            //$permit_time_from_before_format = DateTime::createFromFormat($date_format, $permit_time_from);
+            //$permit_time_from_after_format =  $permit_time_from_before_format->format('d-m-Y');
+            //$permit_time_from_compare =  strtotime($permit_time_from_after_format); // ready for comparison
+            //$permit_time_to_before_format = DateTime::createFromFormat($date_format, $permit_time_to);
+            //$permit_time_to_after_format =  $permit_time_to_before_format->format('d-m-Y');
+            //$permit_time_to_compare =  strtotime($permit_time_to_after_format); // ready for comparison
+
 			$response['permit_date_from'] = $permit_date_from_after_format;
 			$response['permit_date_to'] = $permit_date_to_after_format;
 			$response['permit_time_from'] = $permit_time_from;
 			$response['permit_time_to'] = $permit_time_to;
-			
-			//Access Time Conversion
-			$access_time_from = $access_time_from_hh . ":" . $access_time_from_mm . ":00";
-			$access_time_to = $access_time_to_hh . ":" . $access_time_to_mm . ":00";
-			//$response['access_time_from'] = $access_time_from;
-			//$response['access_time_to'] = $access_time_to;
-			
-			//Test Time Allowed
-			/*
-			if ( time() >= strtotime($access_time_from) && time() <= strtotime($access_time_to) ){
-				$response['permit_time_allowed'] = 'yes';
-			}
-			else{
-				$response['permit_time_allowed'] = 'no';
-			}
-			*/
-			
+
+            $response['permit_date_allowed_status'] = false;
+            $response['permit_time_allowed_status'] = false;
+
 			//if ( $date_now >= $permit_date_from_before_format && $date_now <= $permit_date_to_before_format){
-			if ( date() >= strtotime($permit_date_from_compare) && date() <= strtotime($permit_date_to_compare) ){
+			if ( strtotime($date_now) >= $permit_date_from_compare && strtotime($date_now) <= $permit_date_to_compare ){
 				unset($response['error']);
+                $response['permit_date_allowed_status'] = true;
 				$response['permit_date_allowed'] = 'yes';
 				
-				
-				if ( time() >= strtotime($permit_time_from) && time() <= strtotime($permit_time_to) ){
-					$response['permit_time_allowed'] = 'yes';
-					
-					$collection_locks = new MongoCollection($app_data, 'locks');					
-					$cursor_locks = $collection_locks->find( array( 'lock_group_id' => $lock_group_id) ); // Find using lock group id
-					if($cursor_locks->count() > 0) { 						
-						foreach($cursor_locks as $locks)
-						{
-							unset($locks['_id']);
-							if (in_array($locks['company_id'],$com)){
-								
-								//Check if lock id is here
-								if ( $lock_id == $locks['lock_ID']){
-									$response['status'] = 'true';
-									$response['open_lock'] = 'yes';
-									//Show Data
-									//$response['locks'][$i] = $locks;
-									$response['locks']['lock_id'] = $locks['lock_ID'];
-									$response['locks']['serial_number'] = $locks['serial_number'];
-									$response['locks']['company_id'] = $locks['company_id'];
-									$response['locks']['lock_name'] = $locks['lock_name'];
-									$response['locks']['lock_group_id'] = $locks['lock_group_id'];
-									$response['locks']['log_number'] = $locks['log_number'];
-									$response['locks']['site_id'] = $locks['site_id'];									
-								}
-							}
-						}
-					}
-					
+				if ( strtotime($time_now) >= strtotime($permit_time_from) && strtotime($time_now) <= strtotime($permit_time_to) ){
+                    $response['permit_time_allowed_status'] = true;
+				    $response['permit_time_allowed'] = 'yes';
+
+                    $response['status'] = 'false';
+                    $response['open_lock'] = false;
+
+                    $collection_locks = $app_data->locks;
+                    $locks = $collection_locks->findOne(array('lock_ID'=>(int)$_REQUEST['lock_id']));
+                    if(isset($locks)){
+                        // Added to check if lock needs approval
+                        $collection_approval_for_lock = $app_data->approval_for_lock;
+                        $approval_for_lock = $collection_approval_for_lock->findOne(array('lock_id'=>(int)$locks['lock_ID']));
+                        //Check result of approval for lock
+                        //$response['approval_for_lock'] = $approval_for_lock;
+
+                        if(isset($approval_for_lock)) {
+                            $response['locks']['approval']['require_admin_approval'] = $approval_for_lock['require_admin_approval'];
+                            $response['locks']['approval']['require_subadmin_approval'] = $approval_for_lock['require_subadmin_approval'];
+                            $response['locks']['approval']['status'] = 'pending';
+
+                            if ($approval_for_lock['require_admin_approval'] == true){
+                                // If subadmin is required
+                                if ($approval_for_lock['require_subadmin_approval'] == false){
+                                    $response['open_lock'] = false;
+
+//                                    // Check Request for Approval
+//                                    $collection_last_approved = $app_data->approval_request_for_lock;
+//                                    $criteria_last_approved = array(
+//                                        '$and' => array(
+//                                            array( 'company_id'=> (int)$_REQUEST['company_id'] ),
+//                                            array( 'user_id'=> (int)$_REQUEST['user_id'] ),
+//                                            array( 'lock_id' => (int)$_REQUEST['lock_id'] ),
+//                                            array( 'permit_id' => (int)$_REQUEST['permit_id'] ),
+//                                            array( 'admin_approved' => true )
+//                                        )
+//                                    );
+//                                    //$cursor_approval_request_for_lock = $collection_approval_request_for_lock->find($criteria_approval_request_for_lock)->sort(array('approval_request_for_lock_id'=>-1));
+//
+//                                    //$criteria_approval_request_for_lock = array( 'lock_id' => (int)$_REQUEST['lock_id'] );
+//                                    $cursor_last_approved = $collection_last_approved->find($criteria_last_approved);
+//                                    $cursor_last_approved->sort(array('approval_request_for_lock_id' => -1))->limit(1);
+//                                    foreach ($cursor_last_approved as $last_approved){
+//                                        unset($last_approved['_id']);
+//                                        $response['locks']['approval']['last_approved'][] = $last_approved;
+//                                        $last_approved_approval_request_for_lock_id = $last_approved['approval_request_for_lock_id'];
+//                                        $last_approved_admin_approved = $last_approved['admin_approved'];
+//                                        $last_approved_admin_approved_on = $last_approved['admin_approved_on'];
+//                                        $last_approved_valid_until = $last_approved['valid_until'];
+//                                    }
+
+                                    $collection_last_request = $app_data->approval_request_for_lock;
+                                    $criteria_last_request = array(
+                                        '$and' => array(
+                                            array( 'company_id'=> (int)$_REQUEST['company_id'] ),
+                                            array( 'user_id'=> (int)$_REQUEST['user_id'] ),
+                                            array( 'lock_id' => (int)$_REQUEST['lock_id'] ),
+                                            array( 'permit_id' => (int)$_REQUEST['permit_id'] )
+                                        )
+                                    );
+                                    $cursor_last_request = $collection_last_request->find($criteria_last_request);
+                                    $cursor_last_request->sort(array('approval_request_for_lock_id' => -1))->limit(1);
+                                    foreach ($cursor_last_request as $last_request){
+                                        unset($last_request['_id']);
+                                        $response['locks']['approval']['last_approved'][] = $last_request;
+                                        $last_request_approval_request_for_lock_id = $last_request['approval_request_for_lock_id'];
+                                        $last_request_created_timestamp = $last_request['created_timestamp'];
+                                        $last_request_admin_approved = $last_request['admin_approved'];
+                                        $last_request_admin_approved_on = $last_request['admin_approved_on'];
+                                        $last_request_valid_until = $last_request['valid_until'];
+                                    }
+
+                                    // Check Valid
+                                    $response['locks']['approval']['timestamp'] = $datetime_now;
+                                    //Check if last request is approved or not
+                                    if ( $last_request_admin_approved == true ){
+                                        // Can only rquest open lock after approval and before end of validity
+                                        if ( strtotime($datetime_now) >= strtotime($last_request_admin_approved_on) && strtotime($datetime_now) <= strtotime($last_request_valid_until) ) {
+                                            $response['locks']['approval']['valid'] = true;
+                                            $response['locks']['approval']['new_request'] = false;
+                                        }
+                                        else{
+                                            $response['locks']['approval']['valid'] = false;
+                                            $response['locks']['approval']['new_request'] = true;
+                                        }
+                                    } else{ // Check last request
+                                        $response['locks']['approval']['valid'] = false;
+                                        $starttimestamp = strtotime($last_request_created_timestamp);
+                                        $endtimestamp  = strtotime($datetime_now);
+                                        $time_difference = abs($endtimestamp - $starttimestamp)/60;
+                                        $new_request_limit = 10;
+                                        $response['locks']['approval']['last_request_timelapse_in_minutes'] = $time_difference;
+                                        $response['locks']['approval']['new_request_limit_in_minutes'] = $new_request_limit;
+                                        if ( $time_difference >= $new_request_limit ){
+                                            $response['locks']['approval']['allow_new_request'] = true;
+                                        } else {
+                                            $response['locks']['approval']['allow_new_request'] = false;
+                                            $response['locks']['approval']['allow_new_request_in_minutes'] = $time_difference;
+                                        }
+
+                                    }
+                                    // Send Notification to Admin
+                                }
+                                else if ($approval_for_lock['require_subadmin_approval'] == true) {
+                                    $response['open_lock'] = false;
+                                    // Subadmin Process
+                                }
+                            }
+                        }
+                        else { // No admin approval needed
+                            $response['locks']['approval']['require_admin_approval'] = null;
+                            $response['locks']['approval']['require_subadmin_approval'] = null;
+                            $response['status'] = 'true';
+                            $response['open_lock'] = true;
+                        }
+
+                        //Show Lock Data
+                        //$response['locks'][$i] = $locks;
+                        $response['locks']['lock_id'] = $locks['lock_ID'];
+                        $response['locks']['serial_number'] = $locks['serial_number'];
+                        $response['locks']['company_id'] = $locks['company_id'];
+                        $response['locks']['lock_name'] = $locks['lock_name'];
+                        $response['locks']['lock_group_id'] = $locks['lock_group_id'];
+                        $response['locks']['log_number'] = $locks['log_number'];
+                        $response['locks']['site_id'] = $locks['site_id'];
+
+                    }
+                    else{
+                        $response['status'] = 'false';
+                        $response['open_lock'] = false;
+                    }
 				}
 				else{
 					$response['permit_time_allowed'] = 'no';
 				}				
 			}
 			else{
+                $response['permit_date_allowed_status'] = false;
 				$response['permit_date_allowed'] = 'no';
 			}
 			
@@ -1097,7 +1200,8 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
 			$exit_building_start_time_date_first =  $exit_building_start_time_before_format->format('d/m/Y H:i:s');
 			//$exit_building_start_time = date('m/d/Y H:i:s', $exit_building_start_time_raw); 
 */
-			
+            $die = 0;
+
 			if($die == 1)
 			{
 				$user_reg = $app_data->bluetoothlock_history_log;
@@ -1447,4 +1551,3 @@ if($_REQUEST['action'] == 'accesscode' && $_REQUEST['method'] == 'history' && !e
 
 header('Content-Type: application/json');
 echo json_encode($response, JSON_PRETTY_PRINT);
-?>
