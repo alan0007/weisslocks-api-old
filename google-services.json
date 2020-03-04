@@ -1,0 +1,94 @@
+{
+  "project_info": {
+    "project_number": "437775881518",
+    "firebase_url": "https://weiocks-7e0ce.firebaseio.com",
+    "project_id": "weiocks-7e0ce",
+    "storage_bucket": "weiocks-7e0ce.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437775881518:android:5920de3503a2d18c",
+        "android_client_info": {
+          "package_name": "com.google.firebase.quickstart.fcm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437775881518-nie74e6hdkrju18jm861sssi25g4e7hu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_WlJea2LLOAZyruekTkpxnWn6ufg-sc0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437775881518:android:178ab985bcd9f73f",
+        "android_client_info": {
+          "package_name": "com.weisslocks.pte"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437775881518-9g0u68mnebtm96deh8v27skfp3m13i8h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.weisslocks.pte",
+            "certificate_hash": "769dafa5a104b342d68b3b71a33021ef35127aed"
+          }
+        },
+        {
+          "client_id": "437775881518-nie74e6hdkrju18jm861sssi25g4e7hu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_WlJea2LLOAZyruekTkpxnWn6ufg-sc0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437775881518-nie74e6hdkrju18jm861sssi25g4e7hu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "437775881518-4jmg885dftmoj46192e11v4o98lq70r9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.weisslocks",
+                "app_store_id": "1381180900"
+              }
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
