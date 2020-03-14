@@ -367,6 +367,9 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
                                         if ( strtotime($datetime_now) >= strtotime($last_request_admin_approved_on) && strtotime($datetime_now) <= strtotime($last_request_valid_until) ) {
                                             $response['locks']['approval']['valid'] = true;
                                             $response['locks']['approval']['new_request'] = false;
+
+                                            $response['open_lock'] = true;
+                                            $response['status'] = 'true';
                                         }
                                         else{
                                             $response['locks']['approval']['valid'] = false;

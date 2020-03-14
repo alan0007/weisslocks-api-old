@@ -42,16 +42,16 @@ if(isset($_REQUEST['company_id'])
         $collection = $app_data->approval_request_for_lock;
         $criteria = array('approval_request_for_lock_id'=>(int)$_REQUEST['approval_request_for_lock_id']);
 
-        $valid_time = strtotime("+1440 minutes", strtotime($datetime));
+        $valid_time = strtotime("+60 minutes", strtotime($datetime));
         $new_data = array(
             '$set' => array(
-                'admin_approved' => true,
-                'admin_approved_by' => (int) $_REQUEST['user_id'],
-                'admin_approved_on' => $datetime,
-                'admin_rejected' => false,
-                'admin_rejected_by' => (int)0,
-                'admin_rejected_on' => "",
-                'valid_until' => date('c', $valid_time)
+                'admin_approved' => false,
+                'admin_approved_by' => (int)0,
+                'admin_approved_on' => "",
+                'admin_rejected' => true,
+                'admin_rejected_by' => (int) $_REQUEST['user_id'],
+                'admin_rejected_on' => $datetime,
+                'valid_until' => ""
         ));
 
         try {

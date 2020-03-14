@@ -47,8 +47,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 					$users = json_decode($company['user_id']);
 					if(in_array($_REQUEST['user_id'],$users))
 					{						
-						//$com['company_ID'] = $company['company_ID']; //Put in company details array
-                        $com['company_id'] = $company['company_ID']; //Put in company details array
+						$com['company_ID'] = $company['company_ID']; //Put in company details array
 					}
 				}
 			}
@@ -80,7 +79,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 				//$response['status'] = 'true';
 				foreach($users as $user)
 				{
-					if(in_array($user['role'],array(3,4,5,6,7,8))  && $user['company_id'] == $user_details['company_id'])
+					if(in_array($user['role'],array(4,5,6,7,8))  && $user['company_id'] == $user_details['company_id'])
 					{
 						unset($user['_id']);
 						//$response['user'][] = $user; //Cannot reveal all data
@@ -88,18 +87,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 						$username = $user['username'];
 						$lock_group_id = $user['lock_group_id'];
 						
-						$com['user_id'] = (int)$user_id; //Put in company details array
-                        //$com['company_id'] = (int)$user['company_id'];
-
-                        if ( $user['role'] == 3){
-                            $response['role'] = 'admin';
-                        }
-                        else if ( $user['role'] == 4){
-                            $response['role'] = 'staff';
-                        }
-                        else if ( $user['role'] == 5){
-                            $response['role'] = 'contractor';
-                        }
+						$com['users'] = $user_id; //Put in company details array
 					}
 					
 				}
@@ -108,95 +96,52 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 			//Added by Alan 2018-02-25
 			$collectionGroup = new MongoCollection($app_data, 'KeyLockGroup');
 			//$criteriaGroup = array('keyLockGroup_ID'=>(int) $_REQUEST['pairing_id']);
-			$accessControl = $collectionGroup->find( array('company_id'=>(int)$_REQUEST['company_id']) );
+			$accessControl = $collectionGroup->find();
 			if($accessControl->count() > 0) { 
 				//$response['status'] = 'true';
-                $i=0;
 				foreach($accessControl as $accessControl)
 				{
-					//if(in_array($com['user_id'],$accessControl['user_id'])) //If User company and User ID is correct
-                    $response['lock_group_count']= count($lock_group_id);
-                    if(is_array($lock_group_id)){
-                        if( in_array((int)$accessControl['lock_group_id'], $lock_group_id) ){//If have keygroup
-                            unset($accessControl['_id']);
-                            $access_date_from = $accessControl['date_from'];
-                            $access_date_to = $accessControl['date_to'];
-                            $access_time_from_hh = $accessControl['time_from_hh'];
-                            $access_time_from_mm = $accessControl['time_from_mm'];
-                            $access_time_to_hh = $accessControl['time_to_hh'];
-                            $access_time_to_mm = $accessControl['time_to_mm'];
-                            $lock_group_id = $accessControl['lock_group_id'];
+					$i=0;
+					if(in_array($accessControl['company_id'],$com)) //If User company and User ID is correct
+					{
+						//$response['status'] = 'true';
+						unset($accessControl['_id']);
+						$access_date_from = $accessControl['date_from'];
+						$access_date_to = $accessControl['date_to'];
+						$access_time_from_hh = $accessControl['time_from_hh'];
+						$access_time_from_mm = $accessControl['time_from_mm'];
+						$access_time_to_hh = $accessControl['time_to_hh'];
+						$access_time_to_mm = $accessControl['time_to_mm'];
+						$lock_group_id = $accessControl['lock_group_id'];
+						
+						//$response['access_control'][] = $accessControl;
+						$response['access_control'][$i]['access_control_ID'] = $accessControl['keyLockGroup_ID'];
+						$response['access_control'][$i]['keyLockGroup_ID'] = $accessControl['keyLockGroup_ID'];
+						$response['access_control'][$i]['pairing_name'] = $accessControl['pairing_name'];
+						$response['access_control'][$i]['lock_group_id'] = $accessControl['lock_group_id'];
+						$response['access_control'][$i]['key_group_id'] = $accessControl['key_group_id'];
+						$response['access_control'][$i]['company_id'] = $accessControl['company_id'];
+						$response['access_control'][$i]['users'] = $accessControl['users'];
+						$response['access_control'][$i]['key_time_restricted'] = $accessControl['key_time_restricted'];
+						$response['access_control'][$i]['date_from'] = $accessControl['date_from'];
+						$response['access_control'][$i]['date_to'] = $accessControl['date_to'];
+						$response['access_control'][$i]['time_from_hh'] = $accessControl['time_from_hh'];
+						$response['access_control'][$i]['time_from_mm'] = $accessControl['time_from_mm'];
+						$response['access_control'][$i]['time_to_hh'] = $accessControl['time_to_hh'];
+						$response['access_control'][$i]['time_to_mm'] = $accessControl['time_to_mm'];
+						$response['access_control'][$i]['lat'] = $accessControl['lat'];
+						$response['access_control'][$i]['long'] = $accessControl['long'];
+						$response['access_control'][$i]['radius'] = $accessControl['radious']; //TODO: change in DB
+						$response['access_control'][$i]['added_by'] = $accessControl['added_by'];
 
-                            //$response['access_control'][] = $accessControl;
-                            $response['access_control'][$i]['access_control_ID'] = $accessControl['keyLockGroup_ID'];
-                            $response['access_control'][$i]['keyLockGroup_ID'] = $accessControl['keyLockGroup_ID'];
-                            $response['access_control'][$i]['pairing_name'] = $accessControl['pairing_name'];
-                            $response['access_control'][$i]['lock_group_id'] = $accessControl['lock_group_id'];
-                            $response['access_control'][$i]['key_group_id'] = $accessControl['key_group_id'];
-                            $response['access_control'][$i]['company_id'] = $accessControl['company_id'];
-                            $response['access_control'][$i]['users'] = $accessControl['users'];
-                            $response['access_control'][$i]['key_time_restricted'] = $accessControl['key_time_restricted'];
-                            $response['access_control'][$i]['date_from'] = $accessControl['date_from'];
-                            $response['access_control'][$i]['date_to'] = $accessControl['date_to'];
-                            $response['access_control'][$i]['time_from_hh'] = $accessControl['time_from_hh'];
-                            $response['access_control'][$i]['time_from_mm'] = $accessControl['time_from_mm'];
-                            $response['access_control'][$i]['time_to_hh'] = $accessControl['time_to_hh'];
-                            $response['access_control'][$i]['time_to_mm'] = $accessControl['time_to_mm'];
-                            $response['access_control'][$i]['lat'] = $accessControl['lat'];
-                            $response['access_control'][$i]['long'] = $accessControl['long'];
-                            $response['access_control'][$i]['radius'] = $accessControl['radious']; //TODO: change in DB
-                            $response['access_control'][$i]['added_by'] = $accessControl['added_by'];
-
-                            //unset($accessControl['keyLockGroup_ID']);
-                            //unset($accessControl['pairing_name']);
-
-                            $i++;
-                        }
-                    }
-                    else {
-                        if ($lock_group_id == $accessControl['$lock_group_id']) //If User company and User ID is correct
-                        {
-                            //$response['status'] = 'true';
-                            unset($accessControl['_id']);
-                            $access_date_from = $accessControl['date_from'];
-                            $access_date_to = $accessControl['date_to'];
-                            $access_time_from_hh = $accessControl['time_from_hh'];
-                            $access_time_from_mm = $accessControl['time_from_mm'];
-                            $access_time_to_hh = $accessControl['time_to_hh'];
-                            $access_time_to_mm = $accessControl['time_to_mm'];
-                            $lock_group_id = $accessControl['lock_group_id'];
-
-                            //$response['access_control'][] = $accessControl;
-                            $response['access_control'][$i]['access_control_ID'] = $accessControl['keyLockGroup_ID'];
-                            $response['access_control'][$i]['keyLockGroup_ID'] = $accessControl['keyLockGroup_ID'];
-                            $response['access_control'][$i]['pairing_name'] = $accessControl['pairing_name'];
-                            $response['access_control'][$i]['lock_group_id'] = $accessControl['lock_group_id'];
-                            $response['access_control'][$i]['key_group_id'] = $accessControl['key_group_id'];
-                            $response['access_control'][$i]['company_id'] = $accessControl['company_id'];
-                            $response['access_control'][$i]['users'] = $accessControl['users'];
-                            $response['access_control'][$i]['key_time_restricted'] = $accessControl['key_time_restricted'];
-                            $response['access_control'][$i]['date_from'] = $accessControl['date_from'];
-                            $response['access_control'][$i]['date_to'] = $accessControl['date_to'];
-                            $response['access_control'][$i]['time_from_hh'] = $accessControl['time_from_hh'];
-                            $response['access_control'][$i]['time_from_mm'] = $accessControl['time_from_mm'];
-                            $response['access_control'][$i]['time_to_hh'] = $accessControl['time_to_hh'];
-                            $response['access_control'][$i]['time_to_mm'] = $accessControl['time_to_mm'];
-                            $response['access_control'][$i]['lat'] = $accessControl['lat'];
-                            $response['access_control'][$i]['long'] = $accessControl['long'];
-                            $response['access_control'][$i]['radius'] = $accessControl['radious']; //TODO: change in DB
-                            $response['access_control'][$i]['added_by'] = $accessControl['added_by'];
-
-                            //unset($accessControl['keyLockGroup_ID']);
-                            //unset($accessControl['pairing_name']);
-
-                            $i++;
-                        }
-                    }
+						//unset($accessControl['keyLockGroup_ID']);
+						//unset($accessControl['pairing_name']);
+						
+						$i++;
+					}
 				}
 			}
-
-			$response['lock_group_id'] = $lock_group_id;
-
+			
 			$collection = new MongoCollection($app_data, 'permit_to_enter');
 			//$C_Query = array( 'company_id' => $company_ID );
 			//$cursor_pte = $collection->find(array('company_id'=> $C_Query));
@@ -290,10 +235,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 				$response['error'] = 'Invalid Company ID';
 				exit(json_encode($response));
 			}
-
-			//Show permit id that is used for opening bluetooth lock
-            $response['permit_id'] = $permit_id;
-
+			
 			//Show Time Now
 			$date_time_now = date("Y-m-d h:i:sa");
 			//$date_now = date("d-m-Y");
@@ -373,8 +315,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 				if ( time() >= strtotime($permit_time_from) && time() <= strtotime($permit_time_to) ){
 					$response['permit_time_allowed'] = 'yes';
 					
-					$collection_locks = new MongoCollection($app_data, 'locks');
-
+					$collection_locks = new MongoCollection($app_data, 'locks');					
 					$cursor_locks = $collection_locks->find( array( 'lock_group_id' => $lock_group_id) ); // Find using lock group id
 
                     if($cursor_locks->count() > 0) {
@@ -383,8 +324,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
 						foreach($cursor_locks as $locks)
 						{
 							unset($locks['_id']);
-							//if (in_array($locks['company_id'],$com)){
-                            //if (in_array($locks['company_id'],$com)){
+							if (in_array($locks['company_id'],$com)){								
 								//Show Data
 								//$response['locks'][$x] = $locks;
 								$response['locks'][$x]['lock_id'] = $locks['lock_ID'];
@@ -411,7 +351,7 @@ isset($_REQUEST['company_id']) && $_REQUEST['company_id'] != '')
                                 }
 
 
-							//}
+							}
 							$x++;
 						}
 					}
