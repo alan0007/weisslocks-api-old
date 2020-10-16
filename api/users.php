@@ -811,7 +811,8 @@ else if($_REQUEST['action'] == 'approve' && isset($_REQUEST['user']) && isset($_
                     $mail->SMTPAuth = true;
 					$mail->Username = "sendweisslocks@gmail.com";
                     $mail->Password = "AppRegistration";
-                    $mail->setFrom('sendweisslocks@gmail.com', 'Weiss Locks');
+                    $mail->
+                    setFrom('sendweisslocks@gmail.com', 'Weiss Locks');
                     // $mail->addAddress('archirayan5@gmail.com');
 					$mail->addAddress( $user_emailTosend );
                     $mail->Subject = 'Weiss Locks - Successfully Approved';

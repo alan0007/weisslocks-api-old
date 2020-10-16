@@ -18,7 +18,7 @@ foreach ($msgs as $msg) {
 }
 */
 // Controller Functions
-$SmsController = new SmsController;
+$SmsController = new Sms365Controller;
 
 $date_now = date('Y-m-d H:i:s');
 $datetime_now = new DateTime();

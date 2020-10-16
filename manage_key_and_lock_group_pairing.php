@@ -43,8 +43,9 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				'time_to_mm'  => $_REQUEST['time_to_mm'],
 				'lat'  => $_REQUEST['lat'],
 				'long'  => $_REQUEST['long'],
-				'radious'  => $_REQUEST['radious'],
-				'added_by'  => (int) $current_user
+				'radius'  => $_REQUEST['radius'],
+				'added_by'  => (int) $current_user,
+                'allowed_days'=> $_REQUEST['allowed_days']
 				);
 			$user_reg->insert($post);
 	}
@@ -71,8 +72,9 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				'time_to_mm'  => $_REQUEST['time_to_mm'],
 				'lat'  => $_REQUEST['lat'],
 				'long'  => $_REQUEST['long'],
-				'radious'  => $_REQUEST['radious'],
+				'radius'  => $_REQUEST['radius'],
 				'updated_by'  => (int) $current_user,
+                'allowed_days'=> $_REQUEST['allowed_days']
 		)));
 	}
 	echo "<script>window.location='key_and_lock_group_pairing.php?sucess=true'</script>";
@@ -107,7 +109,8 @@ include("header.php");?>
 									$time_from_mm = '';
 									$lat = '';
 									$long = '';
-									$radious = '';
+                                    $radius = '';
+                                    $allowed_days = array();
 									
 									if(isset($_REQUEST['keyLockGroup_ID']))
 									{
@@ -131,7 +134,9 @@ include("header.php");?>
 												$time_to_mm = $KeyLockGroup['time_to_mm'];
 												$lat = $KeyLockGroup['lat'];
 												$long = $KeyLockGroup['long'];
-												$radious = $KeyLockGroup['radious'];
+												$radius = $KeyLockGroup['radius'];
+                                                $users = $KeyLockGroup['users'];
+                                                $allowed_days = $KeyLockGroup['allowed_days'];
 											}
 										}
 									}
@@ -333,8 +338,48 @@ include("header.php");?>
 										
 										<div class="form-group">
                                             <label> Detection Radius </label>
-                                            <input class="form-control" name="radious" value="<?php echo $radious; ?>">
+                                            <input class="form-control" name="radius" value="<?php echo $radius; ?>">
                                         </div>
+
+                                        <div class="form-group">
+                                            <label> Allowed Days in Week </label><br/>
+                                            <input id="monday" type="checkbox" name="allowed_days[]" value="1"
+                                                <?php echo in_array( '1' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="monday">Monday</label><br/>
+
+                                            <input id="tuesday" type="checkbox" name="allowed_days[]" value="2"
+                                                <?php echo in_array( '2' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="tuesday">Tuesday</label><br/>
+
+                                            <input id="wednesday" type="checkbox" name="allowed_days[]" value="3"
+                                                <?php echo in_array( '3' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="wednesday">Wednesday</label><br/>
+
+                                            <input id="thursday" type="checkbox" name="allowed_days[]" value="4"
+                                                <?php echo in_array( '4' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="thursday">Thursday</label><br/>
+
+                                            <input id="friday" type="checkbox" name="allowed_days[]" value="5"
+                                                <?php echo in_array( '5' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="friday">Friday</label><br/>
+
+                                            <input id="saturday" type="checkbox" name="allowed_days[]" value="6"
+                                                <?php echo in_array( '6' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="saturday">Saturday</label><br/>
+
+                                            <input id="sunday" type="checkbox" name="allowed_days[]" value="7"
+                                                <?php echo in_array( '7' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            />
+                                            <label for="sunday">Sunday</label><br/>
+
+                                        </div>
+
                                         <input type="submit" class="btn btn-default" value="Save" name="process">
                                     </form>
                                 </div>

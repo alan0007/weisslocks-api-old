@@ -103,6 +103,7 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				'full_name' => $_REQUEST['full_name'],
 				'password'  => md5( $user_password ),
 				'phone_number'  => $_REQUEST['phone_number'],
+                'country_code'  => $_REQUEST['country_code'],
 				'approved'  =>(int) $_REQUEST['approved'],
 				'role'  => (int) $user_role,
 				'company_id'  =>(int) $_REQUEST['company_id'],
@@ -133,8 +134,14 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				'company_position'  => $_REQUEST['company_position'],
 				'user_registration_message'  => $_REQUEST['user_registration_message'],
 				'user_registration_image_name' => $_REQUEST['user_registration_image_name'], //Image File Name
-				'participant' => (int) $_REQUEST['participant']
-				);
+				'participant' => (int) $_REQUEST['participant'],
+                'lock_server_username' => $_REQUEST['lock_server_username'],
+                'lock_server_password' => $_REQUEST['lock_server_password'],
+                'first_name' => $_REQUEST['first_name'],
+                'last_name' => $_REQUEST['last_name'],
+                'identification_last_4_digit' => $_REQUEST['identification_last_4_digit'],
+                'department' => $_REQUEST['department']
+            );
 				
 			if($user_reg->insert($post))
 			{
@@ -232,38 +239,45 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 			}
 			// Update Other Stuffs
 			$collection->update( $criteria ,array('$set' => array(
-					'phone_number'  => $_REQUEST['phone_number'],
-					'role'  => (int) $_REQUEST['role'],
-					'full_name' => $_REQUEST['full_name'],
-					'email'   => $_REQUEST['user_email'],
-					'approved'  =>(int) $_REQUEST['approved'],
-					'company_ref_id'  => $company_ref, // $_REQUEST['company_ref_id'],
-					'user_company'  => json_encode($user_company),
-					'user_company_ref_id'  => $_REQUEST['user_company_ref_id'],
-					'cc_name'  => $_REQUEST['cc_name'],
-					'cc_num'  => $_REQUEST['cc_num'],
-					'cc_validity'  => $_REQUEST['cc_month'] . '/' . $_REQUEST['cc_year'],
-					//'key_id'  => json_encode($key_id), //Old format
-					'key_id'  => $key_id,
-					//'lock_group_id'  => json_encode($lock_group_id), //Old format
-					'lock_group_id'  => $lock_group_id,
-					//'KeyLockGroup'  => json_encode($KeyLockGroup), //Old format
-					'KeyLockGroup'  => $KeyLockGroup,
-					
-					'company_id'  =>(int) $_REQUEST['company_id'],
-					//'key_group_id'  => json_encode($key_group_id), //Old format
-					'key_group_id'  => $key_group_id,
-					//'key_activated'  => json_encode($key_activated),
-					'key_activated'  => $key_activated,
-					'payment_id'  => (int) $_REQUEST['payment_id'],
-					'device_id'  => $_REQUEST['device_id'],
-					'UDID_IOS'  => $_REQUEST['UDID_IOS'],
-					'token'	=> $_REQUEST['token'],
-					// Additional Field
-					'company_position'  => $_REQUEST['company_position'],
-					'user_registration_message'  => $_REQUEST['user_registration_message'],
-					'user_registration_image_name' => $_REQUEST['user_registration_image_name'], //Image File Name
-					'participant' => (int) $_REQUEST['participant']
+                'phone_number'  => $_REQUEST['phone_number'],
+                'country_code'  => $_REQUEST['country_code'],
+                'role'  => (int) $_REQUEST['role'],
+                'full_name' => $_REQUEST['full_name'],
+                'email'   => $_REQUEST['user_email'],
+                'approved'  =>(int) $_REQUEST['approved'],
+                'company_ref_id'  => $company_ref, // $_REQUEST['company_ref_id'],
+                'user_company'  => json_encode($user_company),
+                'user_company_ref_id'  => $_REQUEST['user_company_ref_id'],
+                'cc_name'  => $_REQUEST['cc_name'],
+                'cc_num'  => $_REQUEST['cc_num'],
+                'cc_validity'  => $_REQUEST['cc_month'] . '/' . $_REQUEST['cc_year'],
+                //'key_id'  => json_encode($key_id), //Old format
+                'key_id'  => $key_id,
+                //'lock_group_id'  => json_encode($lock_group_id), //Old format
+                'lock_group_id'  => $lock_group_id,
+                //'KeyLockGroup'  => json_encode($KeyLockGroup), //Old format
+                'KeyLockGroup'  => $KeyLockGroup,
+
+                'company_id'  =>(int) $_REQUEST['company_id'],
+                //'key_group_id'  => json_encode($key_group_id), //Old format
+                'key_group_id'  => $key_group_id,
+                //'key_activated'  => json_encode($key_activated),
+                'key_activated'  => $key_activated,
+                'payment_id'  => (int) $_REQUEST['payment_id'],
+                'device_id'  => $_REQUEST['device_id'],
+                'UDID_IOS'  => $_REQUEST['UDID_IOS'],
+                'token'	=> $_REQUEST['token'],
+                // Additional Field
+                'company_position'  => $_REQUEST['company_position'],
+                'user_registration_message'  => $_REQUEST['user_registration_message'],
+                'user_registration_image_name' => $_REQUEST['user_registration_image_name'], //Image File Name
+                'participant' => (int) $_REQUEST['participant'],
+                'lock_server_username' => $_REQUEST['lock_server_username'],
+                'lock_server_password' => $_REQUEST['lock_server_password'],
+                'first_name' => $_REQUEST['first_name'],
+                'last_name' => $_REQUEST['last_name'],
+                'identification_last_4_digit' => $_REQUEST['identification_last_4_digit'],
+                'department' => $_REQUEST['department']
 			)));
 			
 			// Update Password if Exists
@@ -328,6 +342,7 @@ include("header.php");?>
 									<?php
 									$user_id = 0;
 									$phone_number = '';
+                                    $country_code = '';
 									$approved = '';
 									$role = '';
 									$username = '';
@@ -348,6 +363,13 @@ include("header.php");?>
 									$user_registration_message = '';
 									$user_registration_image_name = '';
 									$participant = 0;
+                                    $lock_server_username = '';
+                                    $lock_server_password = '';
+
+                                    $first_name = '';
+                                    $last_name = '';
+                                    $identification_last_4_digit = '';
+                                    $department = '';
 									
 									if(isset($_REQUEST['user_ID']))
 									{
@@ -361,6 +383,7 @@ include("header.php");?>
 												$username = $user['username'];
 												$email = $user['email'];
 												$phone_number = $user['phone_number'];
+                                                $country_code = $user['country_code'];
 												$approved = $user['approved'];
 												$role = (int) $user['role'];
 												$full_name = $user['full_name'];
@@ -386,6 +409,13 @@ include("header.php");?>
 												$user_registration_message = $user['user_registration_message'];
 												$user_registration_image_name = $user['user_registration_image_name'];
 												$participant = (int) $user['participant'];
+                                                $lock_server_username = $user['lock_server_username'];
+                                                $lock_server_password = $user['lock_server_password'];
+
+                                                $first_name = $user['first_name'];
+                                                $last_name = $user['last_name'];
+                                                $identification_last_4_digit = $user['identification_last_4_digit'];
+                                                $department = $user['department'];
 											}
 										}
 									}
@@ -424,15 +454,29 @@ include("header.php");?>
 													<input class="form-control" name="user_email">
 												</div>
 											<?php } ?>
-												<div class="form-group">
-													<label>Full Name : </label>
-													<input class="form-control" name="full_name" value="<?php echo $full_name; ?>" />
-												</div>
-												<div class="form-group">
-													<label>Phone Number : </label>
-													<input class="form-control" name="phone_number" value="<?php echo $phone_number; ?>" />
-												</div>
-												
+                                                <div class="form-group">
+                                                    <label>Full Name : </label>
+                                                    <input class="form-control" name="full_name" value="<?php echo $full_name; ?>" />
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>First Name : </label>
+                                                    <input class="form-control" name="first_name" value="<?php echo $first_name; ?>" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Last Name : </label>
+                                                    <input class="form-control" name="last_name" value="<?php echo $last_name; ?>" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Identification Last 4 Digit : </label>
+                                                    <input class="form-control" name="identification_number" value="<?php echo $identification_last_4_digit; ?>" />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Department : </label>
+                                                    <input class="form-control" name="department" value="<?php echo $department; ?>" />
+                                                </div>
+
+
 												
 												<?php if($_SESSION['role'] == 3) { ?>
 												<?php $role = !isset($_REQUEST['user_ID']) ? 5 : $role; ?>
@@ -784,6 +828,25 @@ include("header.php");?>
 													<label> Device Token : </label>
 													<input class="form-control" name="UDID_IOS" value="<?php echo $device_token; ?>" />
 												</div>
+
+                                        <h3>Lock Server Details</h3>
+                                        <div class="form-group">
+                                            <label> Lock Server Username : </label>
+                                            <input class="form-control" name="lock_server_username" value="<?php echo $lock_server_username; ?>" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label> Lock Server Password : </label>
+                                            <input class="form-control" name="lock_server_password" value="<?php echo $lock_server_password; ?>" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Country Code : </label>
+                                            <input class="form-control" name="country_code" value="<?php echo $country_code; ?>" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Phone Number : </label>
+                                            <input class="form-control" name="phone_number" value="<?php echo $phone_number; ?>" />
+                                        </div>
+
                                         <input type="submit" class="btn btn-default" value="Save" name="process">
                                     </form>
                                 </div>

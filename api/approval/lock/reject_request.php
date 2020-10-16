@@ -25,18 +25,27 @@ if(isset($_REQUEST['company_id'])
 //    )
 //    );
 
-//    $cursor_admin = $collection_admin->findOne($criteria_admin);
-//    if(isset($cursor_admin)){
-//    $role = $cursor_admin['role'];
-//    if (in_array($role, array(2, 3))){
-//    $response['is_admin'] = true;
-//    }
-//    }
-//    else{
-//    $response['is_admin'] = false;
-//    }
+    $user_id = (int) $_REQUEST['user_id'];
+    $company_id = (int) $_REQUEST['company_id'];
 
-    $response['is_admin'] = true;
+    $collection_admin = $app_data->users;
+    $Profile_Query = array('user_id' =>(int) $user_id);
+    $cursor_admin = $collection_admin->findOne( $Profile_Query );
+
+    if(isset($cursor_admin)){
+        $role = $cursor_admin['role'];
+        if (in_array($role, array(2, 3))){
+            $response['is_admin'] = true;
+        }
+        else{
+            $response['is_admin'] = false;
+        }
+    }
+    else{
+        $response['error'] = 'Error: Not allowed';
+    }
+
+//    $response['is_admin'] = true;
 
     if ($response['is_admin'] == true) {
         $collection = $app_data->approval_request_for_lock;
@@ -51,7 +60,7 @@ if(isset($_REQUEST['company_id'])
                 'admin_rejected' => true,
                 'admin_rejected_by' => (int) $_REQUEST['user_id'],
                 'admin_rejected_on' => $datetime,
-                'valid_until' => ""
+//                'valid_until' => ""
         ));
 
         try {

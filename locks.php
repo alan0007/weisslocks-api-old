@@ -49,15 +49,23 @@ if(isset($_REQUEST['delete']) && $_REQUEST['delete'] == 'lock' && $_REQUEST['id'
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-example">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
 											<th>Company</th>
                                             <th>Lock Name</th>
+                                            <th>Display Name</th>
+                                            <th>Type</th>
+                                            <th>Model</th>
+                                            <th>Mechanism</th>
+                                            <th>Visibility</th>
+                                            <th>Brand</th>
                                             <th>Serial Number</th>
+                                            <th>Log Number</th>
+                                            <th>Site ID</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
 									  <?php
-									  
 									  if($_SESSION['role'] == 1) 
 										{
 									  
@@ -68,20 +76,29 @@ if(isset($_REQUEST['delete']) && $_REQUEST['delete'] == 'lock' && $_REQUEST['id'
 										  foreach($cursor as $lock)
 										  { ?>
 											 <tr>
-												<th><?php
-												$collection = new MongoCollection($app_data, 'company');
-												$check = $collection->find(array('company_ID'=>(int) $lock['company_id']));
-												foreach($check as $users)
-												{
-													echo $users['company_name'];
-												}
-												?></th>
-												<th><?php echo $lock['lock_name']; ?></th>
-												<th><?php echo $lock['serial_number']; ?></th>
-												<th>
-												<a href="managelocks.php?lock_ID=<?php echo $lock['lock_ID']; ?>">  Edit </a>
-												<a onclick="return confirm('Are you sure?')" href="locks.php?delete=lock&id=<?php echo $lock['lock_ID']; ?>">  Delete </a>
-												</th>
+                                                 <th><?php echo $lock['lock_ID']; ?></th>
+                                                 <th><?php
+                                                $collection = new MongoCollection($app_data, 'company');
+                                                $check = $collection->find(array('company_ID'=>(int) $lock['company_id']));
+                                                foreach($check as $users)
+                                                {
+                                                    echo $users['company_name'];
+                                                }
+                                                ?></th>
+                                                 <th><?php echo $lock['lock_name']; ?></th>
+                                                 <th><?php echo $lock['display_name']; ?></th>
+                                                 <th><?php echo $lock['lock_type']; ?></th>
+                                                 <th><?php echo $lock['lock_model']; ?></th>
+                                                 <th><?php echo $lock['lock_mechanism']; ?></th>
+                                                 <th><?php echo $lock['entrance_visibility']; ?></th>
+                                                 <th><?php echo $lock['brand']; ?></th>
+                                                 <th><?php echo $lock['serial_number']; ?></th>
+                                                 <th><?php echo $lock['log_number']; ?></th>
+                                                 <th><?php echo $lock['site_id']; ?></th>
+                                                <th>
+                                                <a href="managelocks.php?lock_ID=<?php echo $lock['lock_ID']; ?>">  Edit </a>
+                                                <a onclick="return confirm('Are you sure?')" href="locks.php?delete=lock&id=<?php echo $lock['lock_ID']; ?>">  Delete </a>
+                                                </th>
 											</tr>
 											  <?php } }
 									  else

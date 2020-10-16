@@ -13,22 +13,29 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 	{
 		$locks = $app_data->locks;
 		$post = array(
-				'lock_ID'  => getNext_users_Sequence('locks'),
-				'company_id'  => (int) $_REQUEST['company_id'],
-				'lock_name'  => $_REQUEST['lock_name'],
-				'serial_number'  => $_REQUEST['serial_number'],
-				'log_number'  => $_REQUEST['log_number'],
-				//'lock_group_id'  => json_encode($lock_group_id),
-				'lock_group_id'  => $lock_group_id,
-				'linked_keys'  => $_REQUEST['linked_keys'],
-				'lock_area'  => $_REQUEST['lock_area'],
-				'lock_address'  => $_REQUEST['lock_address'],
-				'lock_loc_unit'  => $_REQUEST['lock_loc_unit'],
-				'lock_post_code'  => $_REQUEST['lock_post_code'],
-				'lock_plate_num'  => $_REQUEST['lock_plate_num'],
-				'site_id'  => $_REQUEST['site_id'],
-				'added_by'  => (int) $current_user				
-			);
+            'lock_ID'  => getNext_users_Sequence('locks'),
+            'company_id'  => (int) $_REQUEST['company_id'],
+            'lock_name'  => $_REQUEST['lock_name'],
+            'serial_number'  => $_REQUEST['serial_number'],
+            'log_number'  => $_REQUEST['log_number'],
+            //'lock_group_id'  => json_encode($lock_group_id),
+            'lock_group_id'  => $lock_group_id,
+            'linked_keys'  => $_REQUEST['linked_keys'],
+            'lock_area'  => $_REQUEST['lock_area'],
+            'lock_address'  => $_REQUEST['lock_address'],
+            'lock_loc_unit'  => $_REQUEST['lock_loc_unit'],
+            'lock_post_code'  => $_REQUEST['lock_post_code'],
+            'lock_plate_num'  => $_REQUEST['lock_plate_num'],
+            'site_id'  => $_REQUEST['site_id'],
+            'added_by'  => (int) $current_user,
+            'lock_type'  => $_REQUEST['lock_type'],
+            'lock_model'  => $_REQUEST['lock_model'],
+            'lock_mechanism'  => $_REQUEST['lock_mechanism'],
+            'brand'  => $_REQUEST['brand'],
+            'entrance_visibility'  => $_REQUEST['entrance_visibility'],
+            // Added 2020-10-15
+            'display_name'  => $_REQUEST['display_name'],
+        );
 		//$locks->insert($post);
 		if($locks->insert($post)){
 			$Reg_Query = array('_id' => $post['_id'] );
@@ -73,20 +80,26 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 		
 		
 		$collection->update( $criteria ,array('$set' => array(
-				'company_id'  => (int) $_REQUEST['company_id'],
-				'lock_name'  => $_REQUEST['lock_name'],
-				'serial_number'  => $_REQUEST['serial_number'],
-				'log_number'  => $_REQUEST['log_number'],
-				//'lock_group_id'  => json_encode($lock_group_id),
-				'lock_group_id'  => $lock_group_id,
-				'linked_keys'  => $_REQUEST['linked_keys'],
-				'lock_area'  => $_REQUEST['lock_area'],
-				'lock_address'  => $_REQUEST['lock_address'],
-				'lock_loc_unit'  => $_REQUEST['lock_loc_unit'],
-				'lock_post_code'  => $_REQUEST['lock_post_code'],
-				'lock_plate_num'  => $_REQUEST['lock_plate_num'],
-				'site_id'  => $_REQUEST['site_id'],
-				'updated_by'  => (int) $current_user
+            'company_id'  => (int) $_REQUEST['company_id'],
+            'lock_name'  => $_REQUEST['lock_name'],
+            'serial_number'  => $_REQUEST['serial_number'],
+            'log_number'  => $_REQUEST['log_number'],
+            //'lock_group_id'  => json_encode($lock_group_id),
+            'lock_group_id'  => $lock_group_id,
+            'linked_keys'  => $_REQUEST['linked_keys'],
+            'lock_area'  => $_REQUEST['lock_area'],
+            'lock_address'  => $_REQUEST['lock_address'],
+            'lock_loc_unit'  => $_REQUEST['lock_loc_unit'],
+            'lock_post_code'  => $_REQUEST['lock_post_code'],
+            'lock_plate_num'  => $_REQUEST['lock_plate_num'],
+            'site_id'  => $_REQUEST['site_id'],
+            'updated_by'  => (int) $current_user,
+            'lock_type'  => $_REQUEST['lock_type'],
+            'lock_model'  => $_REQUEST['lock_model'],
+            'lock_mechanism'  => $_REQUEST['lock_mechanism'],
+            'brand'  => $_REQUEST['brand'],
+            'entrance_visibility'  => $_REQUEST['entrance_visibility'],
+            'display_name'  => $_REQUEST['display_name']
 		)));
 		$locksData = $collection->findOne( $criteria );
 	}
@@ -144,6 +157,12 @@ include("header.php");?>
 									$lock_loc_unit = '';
 									$lock_post_code = '';
 									$lock_plate_num = '';
+                                    $lock_type = '';
+                                    $lock_model = '';
+                                    $lock_mechanism = '';
+                                    $brand = '';
+                                    $entrance_visibility = '';
+                                    $display_name = '';
 									if(isset($_REQUEST['lock_ID']))
 									{
 										$locks_details = $app_data->locks;
@@ -163,8 +182,19 @@ include("header.php");?>
 												$lock_loc_unit = $locks_detail['lock_loc_unit'];
 												$lock_post_code = $locks_detail['lock_post_code'];
 												$lock_plate_num = $locks_detail['lock_plate_num'];
+                                                $lock_type = $locks_detail['lock_type'];
+                                                $lock_model = $locks_detail['lock_model'];
+                                                $lock_mechanism = $locks_detail['lock_mechanism'];
+                                                $brand = $locks_detail['brand'];
+                                                $entrance_visibility =  $locks_detail['entrance_visibility'];
 												$site_id = $locks_detail['site_id'];
-												
+
+												$display_name = '';
+                                                if (isset($locks_detail['display_name'])){
+                                                    $display_name = $locks_detail['display_name'];
+                                                }
+
+
 												// For checking key in key group only
 												/*
 												$arrayCount = sizeof($lock_group_id);
@@ -236,6 +266,39 @@ include("header.php");?>
                                             <label>Lock Name</label>
                                             <input class="form-control" name="lock_name" value="<?php echo $lock_name; ?>">
                                         </div>
+
+                                        <div class="form-group">
+                                            <label>Display Name</label>
+                                            <input class="form-control" name="display_name" value="<?php echo $display_name; ?>">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Lock Type</label>
+                                            <input class="form-control" name="lock_type" value="<?php echo $lock_type; ?>">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Lock Model</label>
+                                            <input class="form-control" name="lock_model" value="<?php echo $lock_model; ?>">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Lock Mechanism</label>
+                                            <input class="form-control" name="lock_mechanism" value="<?php echo $lock_mechanism; ?>">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Entrance Visibility</label>
+                                            <select name="entrance_visibility" class="form-control">
+                                                <option <?php echo $entrance_visibility == 'Hidden' ? 'selected="selected"' : ''; ?> value="Hidden">Hidden</option>
+                                                <option <?php echo $entrance_visibility == 'Covered' ? 'selected="selected"' : ''; ?> value="Covered">Covered</option>
+                                                <option <?php echo $entrance_visibility == 'Visible' ? 'selected="selected"' : ''; ?> value="Visible">Visible</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Lock Brand</label>
+                                            <input class="form-control" name="brand" value="<?php echo $brand; ?>">
+                                        </div>
+
                                         <div class="form-group">
                                             <label>Serial Number</label>
                                             <input class="form-control" name="serial_number" value="<?php echo $serial_number; ?>">

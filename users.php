@@ -74,8 +74,9 @@ if(isset($_REQUEST['user']) && $_REQUEST['user'] == 'approve' && $_REQUEST['id']
 											<th>role</th>
 											<th>Company</th>
 											<th>Company Ref ID</th>
-											<th>keys</th>
-											<th>Key Activated</th>
+                                            <th>Phone</th>
+											<th>Keys</th>
+<!--											<th>Key Activated</th>-->
 											<th>Participant</th>
 											<th>Status</th>
 											<?php echo in_array($_SESSION['role'],array(1,3)) ? '<th>Approve Action</th>' : ''; ?>
@@ -118,13 +119,14 @@ if(isset($_REQUEST['user']) && $_REQUEST['user'] == 'approve' && $_REQUEST['id']
 												<th><?php
 												$collection = new MongoCollection($app_data, 'company');
 												$check = $collection->find(array('company_ID'=>(int) $user['company_id']));
-												foreach($check as $companys)
+												foreach($check as $companies)
 												{
-													echo $companys['company_name'];
-													$company_ref = $companys['company_ref'];
+													echo $companies['company_name'];
+													$company_ref = $companies['company_ref'];
 												}
 												?></th>
 												<th><?php echo $company_ref; // $user['company_ref_id']; ?></th>
+                                                 <th><?php echo $user['phone_number']; ?></th>
 												<th><?php 
 												$keys = json_decode($user['key_id']);
 												$collection = new MongoCollection($app_data, 'keys');
@@ -139,19 +141,19 @@ if(isset($_REQUEST['user']) && $_REQUEST['user'] == 'approve' && $_REQUEST['id']
 													}
 												}
 												?></th>
-												<th><?php 
-												$keys = json_decode($user['key_activated']);
-												$collection = new MongoCollection($app_data, 'keys');
-												for($i=0;$i<=count($keys);$i++)
-												{
-													$check = $collection->find(array('key_ID'=>(int) $keys[$i]));
-													foreach($check as $key)
-													{
-														echo $i+1 . '. ' . $key['key_name'];
-														echo '<br/>';
-													}
-												}
-												?></th>
+<!--												<th>--><?php //
+//												$keys = json_decode($user['key_activated']);
+//												$collection = new MongoCollection($app_data, 'keys');
+//												for($i=0;$i<=count($keys);$i++)
+//												{
+//													$check = $collection->find(array('key_ID'=>(int) $keys[$i]));
+//													foreach($check as $key)
+//													{
+//														echo $i+1 . '. ' . $key['key_name'];
+//														echo '<br/>';
+//													}
+//												}
+//												?><!--</th>-->
 												<th><?php  echo $user['participant'] == 1 ? 'Yes' : ($user['participant'] == 0 ? 'No' : 'Not Determined'); ?></th>
 												<th><?php  echo $user['approved'] == 2 ? 'Disapproved' : ($user['approved'] == 1 ? 'Approved' : 'Pending'); ?></th>
 												<?php if(in_array($_SESSION['role'],array(1,3))){  ?>
@@ -225,13 +227,14 @@ if(isset($_REQUEST['user']) && $_REQUEST['user'] == 'approve' && $_REQUEST['id']
 												<th><?php
 												$collection = new MongoCollection($app_data, 'company');
 												$check = $collection->find(array('company_ID'=>(int) $user['company_id']));
-												foreach($check as $companys)
+												foreach($check as $companies)
 												{
-													echo $companys['company_name'];
+													echo $companies['company_name'];
 												}
 												?></th>
 												<th><?php echo $user['company_ref_id']; ?></th>
-												<th><?php 
+                                                <th><?php echo $user['phone_number']; ?></th>
+												<th><?php
 												$keys = json_decode($user['key_id']);
 												$collection = new MongoCollection($app_data, 'keys');
 												for($i=0;$i<=count($keys);$i++)
@@ -245,19 +248,19 @@ if(isset($_REQUEST['user']) && $_REQUEST['user'] == 'approve' && $_REQUEST['id']
 													}
 												}
 												?></th>
-												<th><?php 
-												$keys = json_decode($user['key_activated']);
-												$collection = new MongoCollection($app_data, 'keys');
-												for($i=0;$i<=count($keys);$i++)
-												{
-													$check = $collection->find(array('key_ID'=>(int) $keys[$i]));
-													foreach($check as $key)
-													{
-														echo $i+1 . '. ' . $key['key_name'];
-														echo '<br/>';
-													}
-												}
-												?></th>
+<!--												<th>--><?php //
+//												$keys = json_decode($user['key_activated']);
+//												$collection = new MongoCollection($app_data, 'keys');
+//												for($i=0;$i<=count($keys);$i++)
+//												{
+//													$check = $collection->find(array('key_ID'=>(int) $keys[$i]));
+//													foreach($check as $key)
+//													{
+//														echo $i+1 . '. ' . $key['key_name'];
+//														echo '<br/>';
+//													}
+//												}
+//												?><!--</th>-->
 												<th><?php  echo $user['participant'] == 1 ? 'Yes' : ($user['participant'] == 0 ? 'No' : 'Not Determined'); ?></th>
 												<th><?php  echo $user['approved'] == 2 ? 'Disapproved' : ($user['approved'] == 1 ? 'Approved' : 'Pending'); ?></th>
 												<?php if(in_array($_SESSION['role'],array(1,3))){  ?>
