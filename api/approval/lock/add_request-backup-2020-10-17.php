@@ -21,7 +21,7 @@ require dirname(dirname(dirname(dirname(__FILE__)))).'/composer/vendor/autoload.
 use api\modules\v1\user\controllers\UserController;
 use api\modules\v1\organization\controllers\CompanyController;
 use api\modules\v1\lock\controllers\ApprovalRequestForLockController;
-use api\modules\v1\log\controllers\LogLockBluetoothActivityController;
+use api\modules\v1\log\controllers\LogLockOpeningActivityController;
 use common\config\Constant;
 use common\config\Database;
 
@@ -48,7 +48,7 @@ if(isset($_REQUEST['company_id']) && isset($_REQUEST['user_id']) &&
     $UserController = new UserController($Database);
     $CompanyController = new CompanyController($Database);
     $ApprovalRequestForLockController = new ApprovalRequestForLockController($Database);
-    $LogLockBluetoothActivityController = new LogLockBluetoothActivityController($Database);
+    $LogLockBluetoothActivityController = new LogLockOpeningActivityController($Database);
 
     if ( $_REQUEST['require_admin_approval'] == 'true' ){
         $require_admin_approval = true;

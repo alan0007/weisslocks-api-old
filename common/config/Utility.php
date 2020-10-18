@@ -35,4 +35,40 @@ class Utility
                 return "sunday";
         }
     }
+
+    // After registration, assign according to company_id
+    public function actionDefaultLockGroupBasedOnCompanyId($company_id){
+        switch ((int)$company_id) {
+            case 12: // SP
+                return 2;
+            case 25: // IOS
+                return 116;
+            case 27: // PA
+                return 115;
+        }
+    }
+
+    // After registration, assign according to company_id
+    public function actionAssignKeyGroupBasedOnCompanyId($company_id){
+        switch ((int)$company_id) {
+            case 12: // SP
+                return 103;
+            case 25: // IOS
+                return 105;
+            case 27: // PA
+                return 104;
+        }
+    }
+
+    // After registration, assign according to company_id
+    public function actionAssignAccessControlBasedOnCompanyId($company_id){
+        switch ((int)$company_id) {
+            case 12: // SP
+                return 88;
+            case 25: // IOS
+                return 90;
+            case 27: // PA
+                return 89;
+        }
+    }
 }

@@ -28,8 +28,10 @@ tags:
   description: Lock Server Function 
 - name: otp
   description: One Time Password (OTP) Generation and Verification
-- name: log/activity
+- name: log/user_activity
   description: Log of User Activity
+- name: log/lock_activity
+  description: Log of Lock Activity
 - name: sms
   description: SMS Function
 - name: test
@@ -217,10 +219,10 @@ paths:
     post:
       tags:
       - approval/lock
-      summary: Send request for approval. Require to manual log addition in /log/add_log_activity.php
-      description: Send out request for approval for a specific lock with user's a permit recorded in mobile app. 
+      summary: Send request for approval.
+      description: "Send out request for approval for a specific lock with user's a permit recorded in mobile app.
         URL is at http://app.weisslocks.com/api/approval/lock/add_request.php
-        Remember to compile activity description and send to log_activtiy
+        Lock Activity Logs is generated automatically"
       operationId: add_request
       parameters:
       - name: company_id
@@ -614,8 +616,9 @@ paths:
     get:
       tags:
       - lock/bluetooth
-      summary: List bluetooth lock
-      description: This will list out bluetooth lock for a user (without using permit)
+      summary: List bluetooth lock (All)
+      description: This will list out bluetooth lock for a user.
+        Updated to allow without using permit. URL is at updated.
       operationId: list_lock
       parameters:
       - name: company_id
@@ -654,9 +657,9 @@ paths:
     get:
       tags:
         - lock/bluetooth
-      summary: List bluetooth lock
-      description: This will list out bluetooth lock for a user (without using permit)
-        URL is at updated
+      summary: List bluetooth lock (Require 2nd approval Only)
+      description: This will list out bluetooth lock for a user that needs 2nd approval to be approved by admin.
+        Updated to allow without using permit. URL is at updated.
       operationId: list_lock_require_approval
       parameters:
         - name: company_id
@@ -692,12 +695,13 @@ paths:
           content: {}
 
   /lock/bluetooth/open_lock.php:
-    get:
+    post:
       tags:
       - lock/bluetooth
       summary: Open Bluetooth Lock
-      description: This is extension to previous API at req_bluetooth.php, to open bluetooth lock.
-        New URL is updated
+      description: "This is extension to previous API at req_bluetooth.php, to open bluetooth lock.
+        New URL is updated. <br>
+        Lock Activity Logs is generated automatically"
       operationId: open_lock
       parameters:
       - name: user_id
@@ -721,6 +725,78 @@ paths:
         style: form
         schema:
           type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /lock/bluetooth/open_lock_result.php:
+    post:
+      tags:
+        - lock/bluetooth
+      summary: Result of opening Bluetooth Lock
+      description: "This is to submit result of opening bluetooth lock physically,
+        whether success, failed (with error). <br>
+        Lock Activity Logs is generated automatically"
+      operationId: open_lock_result
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g.374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: description
+          in: query
+          description: "Log text, e.g. <br>
+            Unlock Attempt for lock: no. 1234, <br>
+            Unlock Success for lock: no. 1234, <br>
+            Unlock Failed for lock: no. 1234,"
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: "Status including: sent, pending, success, failed"
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: error_message
+          in: query
+          description: "(Optional) If there is error, send error message from lock server"
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -933,18 +1009,21 @@ paths:
         in: query
         description: username
         style: form
+        required: true
         schema:
           type: string
       - name: password
         in: query
         description: password
         style: form
+        required: true
         schema:
           type: string
       - name: UDID_IOS
         in: query
         description: UDID_IOS
         style: form
+        required: true
         schema:
           type: string
       responses:
@@ -975,7 +1054,7 @@ paths:
       parameters:
       - name: country_code
         in: query
-        description: e.g.+65
+        description: "Without + sign e.g.65"
         required: true
         style: form
         schema:
@@ -1176,7 +1255,7 @@ paths:
             type: string
         - name: country_code
           in: query
-          description: country_code with '+' sign, e.g. +65
+          description: "country_code without + sign, e.g. 65, 60,..."
           style: form
           required: true
           schema:
@@ -1283,7 +1362,7 @@ paths:
             type: string
         - name: country_code
           in: query
-          description: country_code with '+' sign, e.g. +65
+          description: "country_code without + sign, e.g. 65, 60,..."
           style: form
           required: true
           schema:
@@ -1307,6 +1386,46 @@ paths:
           style: form
           schema:
             type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /user/admin_registration_list.php:
+    get:
+      tags:
+        - user/registration
+      summary: View Registered User by Admin
+      description: This is to list out users in same company
+      operationId: admin_registration_list
+      parameters:
+        - name: company_id
+          in: query
+          description: company id, e.g. 25, 27
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: admin_user_id
+          in: query
+          description: admin's user id, e.g. 199, 374,...
+          style: form
+          required: true
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -1379,18 +1498,33 @@ paths:
           description: Invalid status value
           content: {}
 
-  /totp/generate.php:
+  /totp/send.php:
     post:
       tags:
         - otp
       summary: Send OTP SMS
       description: This is to generate and send totp SMS
-      operationId: totp_generate
+      operationId: totp_send
       parameters:
+        - name: user_id
+          in: query
+          description: "user_id, e.g. 374, 197"
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: country_code
+          in: query
+          description: "country_code without + sign, e.g. 65, 60,..."
+          style: form
+          required: true
+          schema:
+            type: string
         - name: phone_number
           in: query
-          description: Phone number with country code and +, e.g. +6588888888
+          description: Phone number without country code, e.g. 12345678
           style: form
+          required: true
           schema:
             type: string
       responses:
@@ -1419,10 +1553,18 @@ paths:
       description: This is to verify totp
       operationId: totp_verify
       parameters:
+        - name: user_id
+          in: query
+          description: "user_id, e.g. 374, 197"
+          style: form
+          required: true
+          schema:
+            type: integer
         - name: otp
           in: query
           description: Verify 6 digit OTP received in SMS
           style: form
+          required: true
           schema:
             type: string
       responses:
@@ -1443,18 +1585,19 @@ paths:
           description: Invalid status value
           content: { }
 
-  /log/list_log_activity.php:
+  /log/list_log_user_activity.php:
     get:
       tags:
-        - log/activity
-      summary: List Log
-      description: This is to list log according to User ID
-      operationId: log_activity_list
+        - log/user_activity
+      summary: (Not In use) List Log - User Activity Only
+      description: "(Not In use) This is to show user activity log according to User ID"
+      operationId: list_log_user_activity
       parameters:
         - name: company_id
           in: query
-          description: user_id, e.g 25,27...
+          description: company_id, e.g 25,27...
           style: form
+          required: true
           schema:
             type: integer
         - name: user_id
@@ -1481,24 +1624,26 @@ paths:
           description: Invalid status value
           content: {}
 
-  /log/add_log_activity.php:
+  /log/add_log_user_activity.php:
     post:
       tags:
-        - log/activity
-      summary: Add Log
-      description: This is to add log
-      operationId: log_activity_add
+        - log/user_activity
+      summary: (Not In use) Add Log - User Activity Only
+      description: "(Not In use) This is to add user activity log"
+      operationId: add_log_user_activity
       parameters:
         - name: company_id
           in: query
           description: company_id, e.g. 25,27,...
           style: form
+          required: true
           schema:
             type: integer
         - name: user_id
           in: query
           description: user_id, e.g. 374,...
           style: form
+          required: true
           schema:
             type: integer
         - name: description
@@ -1525,26 +1670,159 @@ paths:
           description: Invalid status value
           content: {}
 
+  /log/list_log_lock_activity.php:
+    get:
+      tags:
+        - log/lock_activity
+      summary: "List Lock's Log - Request for Lock Access, Opening of Lock. "
+      description: "This is to list log according to User ID, including Request for Lock Access, Opening of Lock. <br>
+        This does not include whether opening lock success or failed."
+      operationId: list_log_lock_activity
+      parameters:
+        - name: company_id
+          in: query
+          description: company_id, e.g 25,27...
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: user_id, e.g 374,...
+          style: form
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /log/add_log_lock_activity.php:
+    post:
+      tags:
+        - log/lock_activity
+      summary: Add Log for Lock Activity (Use lock/bluetooth/open_lock_result.php for lock attempt)
+      description: "This is to add log.<br>
+        Important: Use lock/bluetooth/open_lock_result.php for attempt to open lock and
+        update whether unlock is successful"
+      operationId: add_log_lock_activity
+      parameters:
+        - name: company_id
+          in: query
+          description: company_id, e.g. 25,27,...
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: user_id, e.g. 374,...
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock_id, e.g. 33,...
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: lock_type
+          in: query
+          description: "lock, e.g bluetooth,... Default is bluetooth"
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: description
+          in: query
+          description: "Log text, e.g. <br>
+            Unlock Attempt for lock: 1234, <br>
+            Unlock Success for lock: 1234, <br>
+            Unlock Failed for lock: 1234"
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: "Status including: sent, pending, success, failed"
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: error_message
+          in: query
+          description: "(Optional) If there is error, send error message from lock server"
+          style: form
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: "Category includes: <br>
+            open_lock<br>
+            lock_request_access<br>
+            lock_request_access_approval"
+          style: form
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
   /log/list_log_opening_lock_activity.php:
     get:
       tags:
-        - log/activity
-      summary: List log of opening lock
-      description: This is to list log of opening lock according to User ID only
-        (Does not include request for approval)
-        Log is generated.
+        - log/lock_activity
+      summary: List log of opening lock ONLY (Exclude request and approval for opening lock)
+      description: "For Admin Only.<br>
+        This is to list log of opening lock according to User ID only. <br>
+        (Does not include request for approval). <br>
+        This includes lock opening: sent / success / failed."
       operationId: list_log_opening_lock_activity
       parameters:
         - name: company_id
           in: query
-          description: user_id, e.g 25,27...
+          description: company_id, e.g 25,27...
           style: form
+          required: true
           schema:
             type: integer
         - name: user_id
           in: query
           description: user_id, e.g 374,197...
           style: form
+          required: true
           schema:
             type: integer
       responses:

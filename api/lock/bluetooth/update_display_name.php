@@ -33,15 +33,15 @@ if( isset($_REQUEST['lock_id']) && isset($_REQUEST['display_name']) )
     $Constant = new Constant();
     $LockBluetoothController = new LockBluetoothController($Database);
 
-    $result = $LockBluetoothController->actionGetOneById($_REQUEST['lock_id']);
-    unset($result['_id']);
-    $response['data']['lock'] = $result;
-
     $set_success = $LockBluetoothController->actionUpdateDisplayName($_REQUEST['lock_id'],$_REQUEST['display_name']);
 
     if ( $set_success == TRUE ){
         $response['status'] = 'true';
         unset($response['error']);
+
+        $result = $LockBluetoothController->actionGetOneById($_REQUEST['lock_id']);
+        unset($result['_id']);
+        $response['data']['lock'] = $result;
     }
 
     $response['data']['update_success']= $set_success;

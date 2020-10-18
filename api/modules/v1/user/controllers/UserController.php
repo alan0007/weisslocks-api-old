@@ -50,6 +50,12 @@ class UserController
         return $result; // return array
     }
 
+    public function actionGetOneByUsername($username){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $result = $collection->findOne(array('username'=>(string)$username));
+        return $result; // return array
+    }
+
     public function actionGetOneByIdAndCompanyId($user_id,$company_id){
         $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
         $criteria = array(
@@ -82,13 +88,25 @@ class UserController
 
     public function actionGetByCompanyId($company_id){
         $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
-        $result = $collection->find(array('company_id'=>(string)$company_id));
+        $result = $collection->find(array('company_id'=>(int)$company_id));
         return $result; // return object
     }
 
     public function actionLogin($collection,$Login_Query){
         $cursor = $collection->findOne( $Login_Query );
         return $cursor; // return array
+    }
+
+    public function actionLoginUsingUsernameAndPassword($username,$password){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'username'=> $username ),
+                array( 'password' => md5($password) )
+            )
+        );
+        $result = $collection->findOne($criteria);
+        return $result; // return array
     }
 
     public function actionUpdateLastLogin($user_id){
@@ -205,4 +223,31 @@ class UserController
         $result = $collection->find($criteria);
         return $result; // return object
     }
+
+    public function actionIsAdmin($user_id,$company_id){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'user_id'=> (int)$user_id ),
+                array( 'company_id'=> (int)$company_id ),
+                array( 'role' => 3 )
+            )
+        );
+        $result = $collection->findOne($criteria);
+
+        if (isset($result)){
+            return TRUE;
+        }else{
+            return FALSE;
+        }
+    }
+
+    public function actionVerifyApproved($approved){
+        if ((int)$approved == 1){
+            return TRUE;
+        }else{
+            return FALSE;
+        }
+    }
+
 }

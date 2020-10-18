@@ -4,17 +4,32 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-include(dirname(dirname(dirname(dirname(__FILE__)))).'/configurations/config.php');
+include dirname(dirname(dirname(dirname(__FILE__)))).'/configurations/config.php';
+require dirname(dirname(dirname(dirname(__FILE__)))).'/common/config/Database.php';
+require dirname(dirname(dirname(dirname(__FILE__)))).'/common/config/Constant.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/user/controllers/UserController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/organization/controllers/CompanyController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/LockBluetoothController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/accessControl/controllers/AccessControlController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/ApprovalRequestForLockController.php';
+//require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/ApprovalForLockController.php';
+
 include(dirname(dirname(dirname(__FILE__))).'/controller/NotificationController.php');
 //include(dirname(__FILE__).'/controller/SmsController.php');
 
+// Required if your environment does not handle autoloading
+require dirname(dirname(dirname(dirname(__FILE__)))).'/composer/vendor/autoload.php';
+
+use api\modules\v1\user\controllers\UserController;
+use api\modules\v1\organization\controllers\CompanyController;
+use api\modules\v1\lock\controllers\LockBluetoothController;
+use api\modules\v1\accessControl\controllers\AccessControlController;
+use api\modules\v1\lock\controllers\ApprovalRequestForLockController;
+//use api\modules\v1\lock\controllers\ApprovalForLockController;
+use common\config\Constant;
+use common\config\Database;
+
 $response = array();
-
-$NotificationController = new NotificationController;
-//$SmsController = new SmsController;
-
-//date_default_timezone_set('Asia/Singapore');
-$datetime = date("c");
 
 //----------------------------------
 // Request Approval for Locks
@@ -22,15 +37,49 @@ $datetime = date("c");
 if(isset($_REQUEST['company_id'])
     && isset($_REQUEST['user_id']))
 {
+    //date_default_timezone_set('Asia/Singapore');
+    $datetime = date("c");
+
     $response['status'] = 'false';
+    $response['error'] = 'Invalid parameters';
     $current_user_id = (int) $_REQUEST['user_id'];
+    $i = 0;
+    $c = 0;
 
-    $collection_user = $app_data->users;
-    $user_query = array('user_id' => $current_user_id);
-    $cursor_user = $collection_user->findOne( $user_query );
+    // Start
+    $Database = new Database();
+    $Constant = new Constant();
+    $UserController = new UserController($Database);
+    $CompanyController = new CompanyController($Database);
+    $LockBluetoothController = new LockBluetoothController($Database);
+    $AccessControlController = new AccessControlController($Database);
+    $ApprovalRequestForLockController = new ApprovalRequestForLockController($Database);
+//    $ApprovalForLockController = new ApprovalForLockController($Database);
+    $NotificationController = new NotificationController;
+    //$SmsController = new SmsController;
 
-    if(isset($cursor_user)) {
-        $role = $cursor_user['role'];
+    // Verify company id
+    $company_found = $CompanyController->actionGetOneById($_REQUEST['company_id']);
+    if(isset($company_found))
+    {
+        $company_id = $company_found['company_ID'];
+        $com['company_id'] = $company_found['company_ID']; //Put in company details array
+        $response['data']['company_check']  = 'Valid Company ID';
+//        $response['data']['company_user_id']  = $company_found['user_id'];
+    }
+    else
+    {
+        $response['status'] = 'false';
+        $response['error'] = 'Invalid Company ID';
+        exit(json_encode($response, JSON_PRETTY_PRINT));
+    }
+
+    // Verify User
+    $user_details = $UserController->actionGetOneByIdAndCompanyId($_REQUEST['user_id'],$_REQUEST['company_id']);
+
+    if(isset($user_details['user_id']))
+    {
+        $role = $user_details['role'];
 
 //        $response['role'] = $role;
 
@@ -43,45 +92,16 @@ if(isset($_REQUEST['company_id'])
         }
     }
 
-    $collection_approval_request = $app_data->approval_request_for_lock;
-//    $criteria_admin = array(
-//        '$and' => array(
-//        array( 'company_id'=> $_REQUEST['company_id'] ),
-//        array( 'user_id'=> $_REQUEST['user_id'] )
-//        )
-//    );
-    $cursor_approval_request = $collection_approval_request->find( array('company_id'=>(int)$_REQUEST['company_id']) );
-//    $cursor_approval_request = $collection_approval_request->find( $criteria_admin );
-
-//    $response['data'] = array();
-    $i=0; // count
-    foreach($cursor_approval_request as $approval_request){
-        $response['status'] = 'true';
-        unset($approval_request['_id']);
-        $user_id = $approval_request['user_id'];
-        //Get Username
-        $collection = $app_data->users;
-        $Profile_Query = array('user_id' =>(int) $user_id);
-        $cursor = $collection->findOne( $Profile_Query );
-
-        if(isset($cursor)){
-            $response['status'] = 'true';
-            unset($cursor['_id']);
-            $username = $cursor['username'];
-            $full_name = $cursor['full_name'];
-        }
-        else{
-            $full_name = "";
-        }
-
-
-        // Full details
-        if ($current_user_id == $user_id){
+    $cursor_approval_request = $ApprovalRequestForLockController->actionGetByUserIdAndCompanyId($_REQUEST['user_id'],$_REQUEST['company_id']);
+    if ($cursor_approval_request->count() > 0){
+        unset($response['error']);
+        $response['status'] = TRUE;
+        foreach($cursor_approval_request as $approval_request) {
             $response['data'][$i]['approval_request_for_lock_id'] = $approval_request['approval_request_for_lock_id'];
             $response['data'][$i]['company_id'] = $approval_request['company_id'];
             $response['data'][$i]['user_id'] = $approval_request['user_id'];
-            $response['data'][$i]['username'] = $username;
-            $response['data'][$i]['full_name'] = $full_name; // User full name
+            $response['data'][$i]['username'] = $user_details['username'];
+//            $response['data'][$i]['full_name'] = $full_name; // User full name
             $response['data'][$i]['permit_id'] = $approval_request['permit_id'];
             $response['data'][$i]['lock_id'] = $approval_request['lock_id'];
             $response['data'][$i]['created_timestamp'] = $approval_request['created_timestamp'];
@@ -136,10 +156,10 @@ if(isset($_REQUEST['company_id'])
                 $response['data'][$i]['approval_status'] = "rejected";
             }
 
+            //------------------------
             // Lock Name
-            $collection_lock = $app_data->locks;
-            $lock_query = array('lock_ID' =>(int) $approval_request['lock_id']);
-            $cursor_lock = $collection_lock->findOne( $lock_query );
+            //------------------------
+            $cursor_lock = $LockBluetoothController->actionGetOneById( $approval_request['lock_id'] );
             if(isset($cursor_lock)){
                 $response['data'][$i]['lock_name'] = $cursor_lock['lock_name'];
                 $response['data'][$i]['serial_number'] = $cursor_lock['serial_number'];
@@ -154,11 +174,10 @@ if(isset($_REQUEST['company_id'])
             $response['data'][$i]['valid_from'] = $approval_request['admin_approved_on'];
 //            $response['data'][$i]['valid_to'] = $approval_request['valid_until'];
 
+            //------------------------
             // Admin full name
-            $approval_admin_id = (int) $approval_request['admin_approved_by'];
-            $collection_approval_admin = $app_data->users;
-            $approval_admin_query = array('user_id' =>(int) $approval_admin_id);
-            $cursor_approval_admin = $collection_approval_admin->findOne( $approval_admin_query );
+            //------------------------
+            $cursor_approval_admin = $UserController->actionGetOneById( $approval_request['admin_approved_by'] );
 
             if(isset($cursor_approval_admin)){
                 $response['data'][$i]['admin_full_name'] = $cursor_approval_admin['full_name'];
@@ -166,9 +185,138 @@ if(isset($_REQUEST['company_id'])
 
             $i++;
         }
-
-
     }
+    else{
+        $response['error'] = 'No Request Found';
+    }
+
+//    $collection_approval_request = $app_data->approval_request_for_lock;
+//    //    $criteria_admin = array(
+//    //        '$and' => array(
+//    //        array( 'company_id'=> $_REQUEST['company_id'] ),
+//    //        array( 'user_id'=> $_REQUEST['user_id'] )
+//    //        )
+//    //    );
+//    $cursor_approval_request = $collection_approval_request->find( array('company_id'=>(int)$_REQUEST['company_id']) );
+//    //    $cursor_approval_request = $collection_approval_request->find( $criteria_admin );
+//
+//    //    $response['data'] = array();
+//    $i=0; // count
+//    if ($cursor_approval_request){
+//    foreach($cursor_approval_request as $approval_request){
+//        $response['status'] = 'true';
+//        unset($approval_request['_id']);
+//        $user_id = $approval_request['user_id'];
+//        //Get Username
+//        $collection = $app_data->users;
+//        $Profile_Query = array('user_id' =>(int) $user_id);
+//        $cursor = $collection->findOne( $Profile_Query );
+//
+//        if(isset($cursor)){
+//            $response['status'] = 'true';
+//            unset($cursor['_id']);
+//            $username = $cursor['username'];
+//            $full_name = $cursor['full_name'];
+//        }
+//        else{
+//            $full_name = "";
+//        }
+//
+//
+//        // Full details
+//        if ($current_user_id == $user_id){
+//            $response['data'][$i]['approval_request_for_lock_id'] = $approval_request['approval_request_for_lock_id'];
+//            $response['data'][$i]['company_id'] = $approval_request['company_id'];
+//            $response['data'][$i]['user_id'] = $approval_request['user_id'];
+//            $response['data'][$i]['username'] = $username;
+//            $response['data'][$i]['full_name'] = $full_name; // User full name
+//            $response['data'][$i]['permit_id'] = $approval_request['permit_id'];
+//            $response['data'][$i]['lock_id'] = $approval_request['lock_id'];
+//            $response['data'][$i]['created_timestamp'] = $approval_request['created_timestamp'];
+//            $response['data'][$i]['created_by_user_id'] = $approval_request['created_by_user_id'];
+//            $response['data'][$i]['notified_admin_user_id'] = $approval_request['notified_admin_user_id'];
+//            $response['data'][$i]['admin_approved'] = $approval_request['admin_approved'];
+//            $response['data'][$i]['admin_approved_by'] = $approval_request['admin_approved_by'];
+//            $response['data'][$i]['admin_approved_on'] = $approval_request['admin_approved_on'];
+//            $response['data'][$i]['admin_rejected'] = $approval_request['admin_rejected'];
+//            $response['data'][$i]['admin_rejected_by'] = $approval_request['admin_rejected_by'];
+//            $response['data'][$i]['admin_rejected_on'] = $approval_request['admin_rejected_on'];
+//            $response['data'][$i]['subadmin_approved'] = $approval_request['subadmin_approved'];
+//            $response['data'][$i]['subadmin_approved_by'] = $approval_request['subadmin_approved_by'];
+//            $response['data'][$i]['subadmin_approved_on'] = $approval_request['subadmin_approved_on'];
+////        $response['data'][$i]['valid_from'] = $approval_request['valid_from'];
+////            $response['data'][$i]['valid_until'] = $approval_request['valid_until'];
+//
+//            // Added 2020-10-14: timestamps
+//            if (isset($approval_request['from_date'])){
+//                $response['data'][$i]['from_date'] = $approval_request['from_date'];
+//            }else{
+//                $response['data'][$i]['from_date'] = '';
+//            }
+//
+//            if (isset($approval_request['to_date'])){
+//                $response['data'][$i]['to_date'] = $approval_request['to_date'];
+//            }else{
+//                $response['data'][$i]['to_date'] = '';
+//            }
+//
+//            if (isset($approval_request['from_time'])){
+//                $response['data'][$i]['from_time'] = $approval_request['from_time'];
+//            }else{
+//                $response['data'][$i]['from_time'] = '';
+//            }
+//
+//            if (isset($approval_request['to_time'])){
+//                $response['data'][$i]['to_time'] = $approval_request['to_time'];
+//            }else{
+//                $response['data'][$i]['to_time'] = '';
+//            }
+//            // End Timestamps
+//
+//            if ($approval_request['admin_approved'] == true){
+//                $response['data'][$i]['approval_status'] = "approved";
+//            }
+//            else if ($approval_request['admin_rejected'] == false && $approval_request['admin_approved_by'] == 0){
+//                $response['data'][$i]['approval_status'] = "pending";
+//            }
+//
+//            if ($approval_request['admin_rejected'] == true){
+//                $response['data'][$i]['approval_status'] = "rejected";
+//            }
+//
+//            // Lock Name
+//            $collection_lock = $app_data->locks;
+//            $lock_query = array('lock_ID' =>(int) $approval_request['lock_id']);
+//            $cursor_lock = $collection_lock->findOne( $lock_query );
+//            if(isset($cursor_lock)){
+//                $response['data'][$i]['lock_name'] = $cursor_lock['lock_name'];
+//                $response['data'][$i]['serial_number'] = $cursor_lock['serial_number'];
+//            }
+//
+//            // Datetime from and To
+//            $datetime = strtotime ( $approval_request['created_timestamp'] );
+//            $request_date = date ( 'Y-M-d' , $datetime );
+//
+//            $response['data'][$i]['request_datetime'] = $approval_request['created_timestamp'];
+//
+//            $response['data'][$i]['valid_from'] = $approval_request['admin_approved_on'];
+////            $response['data'][$i]['valid_to'] = $approval_request['valid_until'];
+//
+//            // Admin full name
+//            $approval_admin_id = (int) $approval_request['admin_approved_by'];
+//            $collection_approval_admin = $app_data->users;
+//            $approval_admin_query = array('user_id' =>(int) $approval_admin_id);
+//            $cursor_approval_admin = $collection_approval_admin->findOne( $approval_admin_query );
+//
+//            if(isset($cursor_approval_admin)){
+//                $response['data'][$i]['admin_full_name'] = $cursor_approval_admin['full_name'];
+//            }
+//
+//            $i++;
+//        }
+//
+//
+//    }
 }
 
 // Display JSON

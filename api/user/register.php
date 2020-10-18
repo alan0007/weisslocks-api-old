@@ -7,16 +7,28 @@ error_reporting(E_ALL);
 //include(dirname(dirname(dirname(__FILE__))).'/configurations/config.php');
 require dirname(dirname(dirname(__FILE__))).'/common/config/Database.php';
 require dirname(dirname(dirname(__FILE__))).'/common/config/Constant.php';
+require dirname(dirname(dirname(__FILE__))).'/common/config/Utility.php';
 require dirname(dirname(__FILE__)).'/modules/v1/user/controllers/UserController.php';
 require dirname(dirname(__FILE__)).'/modules/v1/organization/controllers/CompanyController.php';
+require dirname(dirname(__FILE__)).'/modules/v1/totp/controllers/TotpController.php';
+require dirname(dirname(__FILE__)).'/modules/v1/sms/controllers/Sms365Controller.php';
+require dirname(dirname(__FILE__)).'/modules/v1/sms/controllers/TwilioSmsController.php';
 
 // Required if your environment does not handle autoloading
 require dirname(dirname(dirname(__FILE__))).'/composer/vendor/autoload.php';
 
+include dirname(dirname(dirname(__FILE__))).'/otphp-master/lib/otphp.php';
+
+
 use api\modules\v1\user\controllers\UserController;
 use api\modules\v1\organization\controllers\CompanyController;
+use api\modules\v1\totp\controllers\TotpController;
+use api\modules\v1\sms\controllers\Sms365Controller;
+use api\modules\v1\sms\controllers\TwilioSmsController;
+
 use common\config\Constant;
 use common\config\Database;
+use common\config\Utility;
 
 $response = array();
 
@@ -28,6 +40,7 @@ if( isset($_REQUEST['company_id']) &&
 {
     $response['status'] = 'false';
     $response['error'] = 'Invalid information entered';
+    $datetime = date("c");
 
     //Load no image uploaded.jpg if no image uploaded
     if ( !isset($_REQUEST['user_registration_image_name']) ||
@@ -53,8 +66,12 @@ if( isset($_REQUEST['company_id']) &&
 
     $Database = new Database();
     $Constant = new Constant();
+    $Utility = new Utility();
     $UserController = new UserController($Database);
     $CompanyController = new CompanyController($Database);
+    $TotpController = new TotpController($Database);
+    $Sms365Controller = new Sms365Controller();
+    $TwilioSMSController = new TwilioSMSController();
 
     // Verify company id
     $company_found = $CompanyController->actionGetOneById($_REQUEST['company_id']);
@@ -70,12 +87,14 @@ if( isset($_REQUEST['company_id']) &&
         exit(json_encode($response));
     }
 
-    $cursor = $UserController->actionGetOneByUsernameAndCompanyId($username,$company_id);
+//    $cursor = $UserController->actionGetOneByUsernameAndCompanyId($username,$company_id);
+    $cursor = $UserController->actionGetOneByUsername($username);
     if(isset($cursor)){ // Verify account before registration
         $response['status'] = 'false';
         $response['error'] = 'User Already Exists...';
     }
-    else{ // Start Registration
+    else{
+        // Start Registration
         $response['status'] = 'true';
         $phone_number = isset($_REQUEST['phone_number']) ? $_REQUEST['phone_number'] : '';
         $user_role = isset($_REQUEST['user_role']) ? $_REQUEST['user_role'] : 5;
@@ -89,6 +108,10 @@ if( isset($_REQUEST['company_id']) &&
             $response['data']['duplicate_email'] = FALSE;
         }
 
+        // Assign Key Group, Lock Group, Access Control
+        $default_key_group_id = $Utility->actionAssignKeyGroupBasedOnCompanyId($_REQUEST['company_id']);
+        $default_lock_group_id = $Utility->actionDefaultLockGroupBasedOnCompanyId($_REQUEST['company_id']);
+        $default_access_control_id = $Utility->actionAssignAccessControlBasedOnCompanyId($_REQUEST['company_id']);
 
         $post = array(
             'user_id' => $Database->getNext_users_Sequence('weiss_locks_user'),
@@ -100,16 +123,17 @@ if( isset($_REQUEST['company_id']) &&
             'approved'  => 0,
             'role'  => $user_role,
             'company_id'  => (int) $company_id,
-            'key_group_id'  => '',
+            'key_group_id'  => array($default_key_group_id),
             'key_id'  => '',
             'key_activated'  => '',
-            'lock_group_id'  => '',
+            'lock_group_id'  => array($default_lock_group_id),
+            'access_control_id'  => $default_access_control_id,
             'payment_id'  => '',
             'invoice_no'  => '',
             'cc_name'  => '',
             'cc_num'  => '',
             'cc_validity'  => '',
-            'registered_time'  => date('d F Y, H:i'),
+            'registered_time'  => date('c'),
 //            'device_name'  => $_REQUEST['device_name'],
 //            'device_id'  => $_REQUEST['device_id'],
             'company_ref_id'  => '',
@@ -140,6 +164,7 @@ if( isset($_REQUEST['company_id']) &&
 
             $user_search = $UserController->actionGetOneByUsernameAndCompanyId($username,$company_id);
             unset($user_search['_id']);
+            unset($user_search['password']);
             $response['data']['user'] = $user_search;
             $user_id = $user_search['user_id'];
 //            $device_id = $user_search['device_id'];
@@ -151,11 +176,42 @@ if( isset($_REQUEST['company_id']) &&
             {
                 $user_id_array = json_decode($cursor1['user_id']);
                 $user_id_array[] = $user_id;
-                $response['data']['company_user_list_update_success'] = $user_search; $CompanyController->actionUpdateUserList($company_id,$user_id_array);
+                $response['data']['company_user_list_update_success'] = $user_search;
+                $CompanyController->actionUpdateUserList($company_id,$user_id_array);
             }
             unset($response['error']);
 
+            //--------------
+            // Send OTP
+            //--------------
+            $totp_now = $TotpController->actionGenerateTotp($user_id);
+            //    $response['data']['otp_setting'] = $totp;
+            $response['data']['otp_interval'] = $TotpController->interval;
+            $response['data']['otp_generated'] = $totp_now;
 
+            $message = $TotpController->actionSmsMessage($totp_now);
+
+            // Insert into totp_token
+            if ( $insert_token = $TotpController->actionInsert($user_id,$totp_now,$datetime) ){
+                $response['data']['otp']['insertion'] = $insert_token;
+                $token = $TotpController->actionVerifyTotp($user_id,$totp_now);
+                unset($token['_id']);
+                $response['data']['otp'] = $token;
+                $response['status'] = 'true';
+            }
+            else{
+                $response['error'] = 'Token insertion failed';
+                exit(json_encode($response, JSON_PRETTY_PRINT));
+            }
+
+            $phone_number_with_country_code_plus = '+'.$_REQUEST['country_code'].$_REQUEST['phone_number'];
+            $phone_number_with_country_code_no_plus = $_REQUEST['country_code'].$_REQUEST['phone_number'];
+
+            // Send SMS
+            //    $sms_result = $TwilioSMSController->sendSMS($_REQUEST['phone_number'],$message);
+            //    $sms_result = $Sms365Controller->sendSMS($_REQUEST['phone_number'],$message);
+            $sms_result = $TwilioSMSController->sendSMS($phone_number_with_country_code_plus,$message);
+            $response['data']['sms_result'] = $sms_result;
 
 
 //            //--- Start Image Save

@@ -14,7 +14,9 @@ require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/Approv
 require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/ApprovalForLockController.php';
 require dirname(dirname(dirname(__FILE__))).'/modules/v1/permit/controllers/PermitController.php';
 require dirname(dirname(dirname(__FILE__))).'/modules/v1/accessControl/controllers/AccessControlController.php';
-require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogLockBluetoothActivityController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogUserActivityController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogLockActivityController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogLockOpeningActivityController.php';
 
 include(dirname(dirname(dirname(__FILE__))).'/controller/NotificationController.php');
 //include(dirname(__FILE__).'/controller/SmsController.php');
@@ -29,7 +31,9 @@ use api\modules\v1\lock\controllers\ApprovalRequestForLockController;
 use api\modules\v1\lock\controllers\ApprovalForLockController;
 use api\modules\v1\permit\controllers\PermitController;
 use api\modules\v1\accessControl\controllers\AccessControlController;
-use api\modules\v1\log\controllers\LogLockBluetoothActivityController;
+use api\modules\v1\log\controllers\LogUserActivityController;
+use api\modules\v1\log\controllers\LogLockOpeningActivityController;
+use api\modules\v1\log\controllers\LogLockActivityController;
 use common\config\Constant;
 use common\config\Database;
 
@@ -50,12 +54,14 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
 
     $description = 'Failed: Open lock';
     $category = 'api: open_lock';
+    $error_message = '';
+    $lock_type = 'bluetooth';
 
-    $datetime_now = date("c");
+    $datetime = date("c");
     $date_now = date("Y-m-d");
     $time_now = date("H:i:s");
     $day_of_week_now = date('w');
-    $response['datetime_now'] = $datetime_now;
+    $response['datetime_now'] = $datetime;
     $response['date_now'] = $date_now;
     $response['time_now'] = $time_now;
     $response['day_of_week_now'] = $day_of_week_now;
@@ -72,7 +78,9 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
     $ApprovalForLockController = new ApprovalForLockController($Database);
     $PermitController = new PermitController($Database);
     $AccessControlController = new AccessControlController($Database);
-    $LogLockBluetoothActivityController = new LogLockBluetoothActivityController($Database);
+    $LogLockActivityController = new LogLockActivityController($Database);
+    $LogLockBluetoothActivityController = new LogLockOpeningActivityController($Database);
+    $NotificationController = new NotificationController;
 
     // Verify company id
     $company_found = $CompanyController->actionGetOneById($_REQUEST['company_id']);
@@ -90,6 +98,7 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
         exit(json_encode($response, JSON_PRETTY_PRINT));
     }
 
+    // Verify User
     $user_details = $UserController->actionGetOneByIdAndCompanyId($_REQUEST['user_id'],$_REQUEST['company_id']);
 
     if(isset($user_details['user_id']))
@@ -175,7 +184,7 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
                             $response['data']['access_control'][$i]['time_to_mm'] = $accessControl['time_to_mm'];
                             $response['data']['access_control'][$i]['lat'] = $accessControl['lat'];
                             $response['data']['access_control'][$i]['long'] = $accessControl['long'];
-                            $response['data']['access_control'][$i]['radius_in_m'] = $accessControl['radious']; //TODO: change in DB
+                            $response['data']['access_control'][$i]['radius_in_m'] = $accessControl['radius'];
                             $response['data']['access_control'][$i]['added_by'] = $accessControl['added_by'];
                             $response['data']['access_control'][$i]['allowed_days'] = $accessControl['allowed_days'];
 
@@ -217,7 +226,7 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
                             $response['data']['access_control'][$i]['time_to_mm'] = $accessControl['time_to_mm'];
                             $response['data']['access_control'][$i]['lat'] = $accessControl['lat'];
                             $response['data']['access_control'][$i]['long'] = $accessControl['long'];
-                            $response['data']['access_control'][$i]['radius'] = $accessControl['radious']; //TODO: change in DB
+                            $response['data']['access_control'][$i]['radius'] = $accessControl['radius'];
                             $response['data']['access_control'][$i]['added_by'] = $accessControl['added_by'];
 
                             //unset($accessControl['keyLockGroup_ID']);
@@ -240,6 +249,16 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
             $locks = $LockBluetoothController->actionGetOneById($lock_id);
             if(isset($locks)) {
                 unset($locks['_id']);
+
+                if (isset($locks['display_name']) &&
+                    $locks['display_name'] != NULL && $locks['display_name'] != ''){
+                    $lock_display_name = $locks['display_name'];
+                }else{
+                    $lock_display_name = $locks['lock_name'];
+                }
+                $response['data']['lock_name'] = $locks['lock_name'];
+                $response['data']['lock_display_name'] = $lock_display_name;
+
 //                $response['data']['lock_details'] = $locks;
                 //------------
                 // Approval For Lock - Added to check if lock needs approval
@@ -405,7 +424,8 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
                         $response['data']['request_time_allowed'] === TRUE &&
                         $response['data']['request_day_allowed'] === TRUE) {
                         $response['open_lock'] = TRUE;
-                        $description = 'Success: Open lock';
+                        $description = 'Open lock: '.$lock_display_name;
+
                     } else {
                         $response['open_lock'] = FALSE;
                     }
@@ -425,7 +445,7 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
                     // Can Open Lock
                     if ($response['data']['request_day_allowed'] === TRUE) {
                         $response['open_lock'] = TRUE;
-                        $description = 'Success: Open lock';
+                        $description = 'Open lock: '.$lock_display_name;
                     } else {
                         $response['open_lock'] = FALSE;
                     }
@@ -433,11 +453,38 @@ isset($_REQUEST['lock_id']) && $_REQUEST['lock_id'] != '')
                 }
                 // End require 2nd approval
 
-                //----------
-                // Log for lock (Bluetooth)
-                //----------
-                $log_open_lock = $LogLockBluetoothActivityController->actionInsert($company_id,$user_id,$lock_id,$description,$category);
-                $response['data']['log_added'] = $log_open_lock;
+                if ($response['open_lock'] === TRUE){
+                    unset($response['error']);
+                    $response['status'] = TRUE;
+                    //-------------
+                    // Log for Lock
+                    //-------------
+                    $category = 'open_bluetooth_lock';
+                    $status = 'sent'; // sent / success / failed
+                    $log_lock_activity = $LogLockActivityController->actionInsert($company_id,$user_id,
+                        $lock_id,$lock_type, $description,$category,$status,$error_message,$datetime);
+                    $response['data']['log_lock_added'] = $log_lock_activity;
+
+                    //-------------
+                    // Log for Lock Opening
+                    //-------------
+                    $category = 'bluetooth';
+                    $status = 'sent'; // sent / success / failed
+                    $log_lock_opening_activity = $LogLockBluetoothActivityController->actionInsert($company_id,
+                        $user_id,$lock_id,$lock_type,$description,$category,$status,$error_message,$datetime);
+                    $response['data']['log_lock_opening_added'] = $log_lock_opening_activity;
+                }
+                else{ // If opening failed
+                    //-------------
+                    // Log for Lock Opening
+                    //-------------
+                    $category = 'bluetooth';
+                    $status = 'failed'; // sent / success / failed
+                    $error_message = 'Permission not allowed';
+                    $log_lock_opening_activity = $LogLockBluetoothActivityController->actionInsert($company_id,
+                        $user_id,$lock_id,$lock_type,$description,$category,$status,$error_message,$datetime);
+                    $response['data']['log_lock_opening_added'] = $log_lock_opening_activity;
+                }
             }
 		}
 	}

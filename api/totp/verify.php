@@ -24,20 +24,28 @@ use common\config\Database;
 
 $response = array();
 
-if( isset($_REQUEST['otp']) )
+if( isset($_REQUEST['otp']) && isset($_REQUEST['user_id']) )
 {
     $response['status'] = 'false';
     $response['error'] = 'Invalid Code';
+    $valid = FALSE;
 
     $Database = new Database();
     $Constant = new Constant();
-    $TotpController = new TotpController();
+    $TotpController = new TotpController($Database);
 
     // OTP verified for current time
-    $result = $TotpController->actionVerifyTotp($_REQUEST['otp']);
+    $result = $TotpController->actionVerifyTotp($_REQUEST['user_id'],$_REQUEST['otp']);
+    if(isset($result)){
+        $response['data']['user_otp_found'] = TRUE;
+        unset($result['_id']);
+        $response['data']['otp_result'] = $result;
+        $valid = $TotpController->actionVerifyTokenValidity($result['valid_until']);
+        $response['data']['otp_valid'] = $valid;
+    }
+
 //    $result = $totp->verify($_REQUEST['otp']); // => true
-    $response['data']['otp_result'] = $result;
-    if ( $result == TRUE){
+    if ( $valid === TRUE){
         unset($response['error']);
         $response['status'] = 'true';
     }

@@ -74,6 +74,18 @@ class ApprovalRequestForLockController
         return $result; // return object
     }
 
+    public function actionGetByUserIdAndCompanyId($user_id,$company_id){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'user_id'=> (int)$user_id ),
+                array( 'company_id' => (int)$company_id )
+            )
+        );
+        $result = $collection->find($criteria);
+        return $result; // return object
+    }
+
     public function actionInsert($company_id,$user_id,$created_by_user_id,$lock_id,
                                  $datetime,$from_date,$to_date,$from_time,$to_time)
     {

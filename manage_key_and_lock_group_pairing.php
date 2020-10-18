@@ -373,8 +373,8 @@ include("header.php");?>
                                             />
                                             <label for="saturday">Saturday</label><br/>
 
-                                            <input id="sunday" type="checkbox" name="allowed_days[]" value="7"
-                                                <?php echo in_array( '7' , $allowed_days ) ? 'checked="checked"' : ''; ?>
+                                            <input id="sunday" type="checkbox" name="allowed_days[]" value="0"
+                                                <?php echo in_array( '0' , $allowed_days ) ? 'checked="checked"' : ''; ?>
                                             />
                                             <label for="sunday">Sunday</label><br/>
 

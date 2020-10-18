@@ -11,7 +11,9 @@ require dirname(dirname(dirname(__FILE__))).'/modules/v1/user/controllers/UserCo
 require dirname(dirname(dirname(__FILE__))).'/modules/v1/organization/controllers/CompanyController.php';
 require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/LockBluetoothController.php';
 require dirname(dirname(dirname(__FILE__))).'/modules/v1/lock/controllers/ApprovalRequestForLockController.php';
-require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogLockBluetoothActivityController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogUserActivityController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogLockActivityController.php';
+require dirname(dirname(dirname(__FILE__))).'/modules/v1/log/controllers/LogLockOpeningActivityController.php';
 
 include(dirname(dirname(dirname(__FILE__))).'/controller/NotificationController.php');
 //include(dirname(__FILE__).'/controller/SmsController.php');
@@ -23,7 +25,9 @@ use api\modules\v1\user\controllers\UserController;
 use api\modules\v1\organization\controllers\CompanyController;
 use api\modules\v1\lock\controllers\LockBluetoothController;
 use api\modules\v1\lock\controllers\ApprovalRequestForLockController;
-use api\modules\v1\log\controllers\LogLockBluetoothActivityController;
+use api\modules\v1\log\controllers\LogUserActivityController;
+use api\modules\v1\log\controllers\LogLockOpeningActivityController;
+use api\modules\v1\log\controllers\LogLockActivityController;
 use common\config\Constant;
 use common\config\Database;
 
@@ -44,6 +48,26 @@ if(isset($_REQUEST['company_id']) && isset($_REQUEST['user_id']) &&
     $user_id = $_REQUEST['user_id'];
     $created_by_user_id = $_REQUEST['created_by_user_id'];
     $lock_id = $_REQUEST['lock_id'];
+    $lock_type = 'bluetooth';
+    // Category
+    if ( isset($_REQUEST['category']) ){
+        $category = $_REQUEST['category']; // default: open_bluetooth_lock
+    }else{
+        $category = 'open_lock';
+    }
+    // Error Message
+    if ( isset($_REQUEST['error_message']) ){
+        $error_message = $_REQUEST['error_message'];
+    }else{
+        $error_message = '';
+    }
+    // Status
+    if ( isset($_REQUEST['status']) ){
+        $status = $_REQUEST['status'];
+    }else{
+        $status = 'success';
+    }
+
     //date_default_timezone_set('Asia/Singapore');
     $datetime = date("c");
     $from_date = $_REQUEST['from_date'];
@@ -58,7 +82,8 @@ if(isset($_REQUEST['company_id']) && isset($_REQUEST['user_id']) &&
     $CompanyController = new CompanyController($Database);
     $LockBluetoothController = new LockBluetoothController($Database);
     $ApprovalRequestForLockController = new ApprovalRequestForLockController($Database);
-    $LogLockBluetoothActivityController = new LogLockBluetoothActivityController($Database);
+    $LogLockActivityController = new LogLockActivityController($Database);
+    $LogLockBluetoothActivityController = new LogLockOpeningActivityController($Database);
     $NotificationController = new NotificationController;
     //$SmsController = new SmsController;
 
@@ -73,6 +98,28 @@ if(isset($_REQUEST['company_id']) && isset($_REQUEST['user_id']) &&
 //        $require_subadmin_approval = false;
 //    }
 
+    //-----------------------
+    // Lock Bluetooth
+    //-----------------------
+    // Check if lock is valid
+    $lock_details = $LockBluetoothController->actionGetOneById($_REQUEST['lock_id']);
+    if(!isset($lock_details['lock_ID'])){
+        $response['error'] = 'Lock not found';
+        exit(json_encode($response, JSON_PRETTY_PRINT));
+    }
+    else{
+        if (isset($lock_details['display_name']) &&
+            $lock_details['display_name'] != NULL && $lock_details['display_name'] != ''){
+            $lock_display_name = $lock_details['display_name'];
+        }else{
+            $lock_display_name = $lock_details['lock_name'];
+        }
+        $response['data']['lock_display_name'] = $lock_display_name;
+    }
+
+    //-----------------------
+    // Approval Request
+    //-----------------------
     if($ApprovalRequestForLockController->actionInsert($company_id,$user_id,$created_by_user_id,$lock_id,
         $datetime,$from_date,$to_date,$from_time,$to_time)){
         unset($response['error']);
@@ -80,6 +127,16 @@ if(isset($_REQUEST['company_id']) && isset($_REQUEST['user_id']) &&
 
 //        $Reg_Query = array('_id' => $post['_id'] );
 //        $locksData = $approval_request_for_lock->findOne( $Reg_Query );
+
+        //-------------
+        // Log for Lock
+        //-------------
+        $description = 'Request to access lock: '.$lock_display_name;
+        $category = 'lock_request_access';
+        $log_lock_activity = $LogLockActivityController->actionInsert($company_id,$user_id,$lock_id,$lock_type,
+            $description,$category,$status,$error_message,$datetime);
+        $response['data']['log_lock_added'] = $log_lock_activity;
+
     }
 
     //----------------

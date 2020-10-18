@@ -15,7 +15,8 @@ if(isset($_REQUEST['activate_key']) && $_REQUEST['activate_key'] != '')
 		$collection->update( $criteria ,array('$set' => array(
 				'status'  => (int) 1, // old format
 				'updated_by'  => (int) 1, // old format
-				'activated_on' => date('d F Y, H:i A') // old format
+//				'activated_on' => date('d F Y, H:i A') // old format
+                'activated_on' => date('c') // new format
 		)));
 		
 		//New format to make key reflect which user has activated the key at date and time
@@ -28,7 +29,8 @@ if(isset($_REQUEST['activate_key']) && $_REQUEST['activate_key'] != '')
 							'user_id' => $_REQUEST['user_ID'],
 							'status'  => (int) 1, // old format
 							'updated_by'  => (int) $current_user, // old format
-							'activated_on' => date('d F Y, H:i A') // old format
+//							'activated_on' => date('d F Y, H:i A') // old format
+                            'activated_on' => date('c') // new format
 						)						
 					)
 				)
@@ -108,7 +110,7 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				'role'  => (int) $user_role,
 				'company_id'  =>(int) $_REQUEST['company_id'],
 				'company_ref_id'  => $company_ref, //$_REQUEST['company_ref_id'],
-				'user_company'  => json_encode($user_company),
+				'user_company'  => $user_company, // format change on 2020-10-19
 				'user_company_ref_id'  => $_REQUEST['user_company_ref_id'],
 				//'key_group_id'  => json_encode($key_group_id), //Old Format
 				'key_group_id'  => $key_group_id,
@@ -125,7 +127,8 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				'cc_name'  => $_REQUEST['cc_name'],
 				'cc_num'  => $_REQUEST['cc_num'],
 				'cc_validity'  => $_REQUEST['cc_month'] . '/' . $_REQUEST['cc_year'],
-				'registered_time'  => date('d F Y, H:i A'),
+//				'registered_time'  => date('d F Y, H:i A'),
+                'registered_time'  => date('c'),
 				// 'device_name'  => $_REQUEST['device_name'],
 				'device_id'  => $_REQUEST['device_id'],
 				'UDID_IOS'  => $_REQUEST['UDID_IOS'],
@@ -246,7 +249,7 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
                 'email'   => $_REQUEST['user_email'],
                 'approved'  =>(int) $_REQUEST['approved'],
                 'company_ref_id'  => $company_ref, // $_REQUEST['company_ref_id'],
-                'user_company'  => json_encode($user_company),
+                'user_company'  => $user_company, // format change on 2020-10-19
                 'user_company_ref_id'  => $_REQUEST['user_company_ref_id'],
                 'cc_name'  => $_REQUEST['cc_name'],
                 'cc_num'  => $_REQUEST['cc_num'],

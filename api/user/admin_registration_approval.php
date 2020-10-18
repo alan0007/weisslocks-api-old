@@ -9,6 +9,8 @@ require dirname(dirname(dirname(__FILE__))).'/common/config/Database.php';
 require dirname(dirname(dirname(__FILE__))).'/common/config/Constant.php';
 require dirname(dirname(__FILE__)).'/modules/v1/user/controllers/UserController.php';
 require dirname(dirname(__FILE__)).'/modules/v1/organization/controllers/CompanyController.php';
+require dirname(dirname(__FILE__)).'/modules/v1/lock/controllers/LockBluetoothController.php';
+require dirname(dirname(__FILE__)).'/modules/v1/accessControl/controllers/AccessControlController.php';
 require dirname(dirname(dirname(__FILE__))).'/gmail/phpmailer/PHPMailerAutoload.php';
 
 // Required if your environment does not handle autoloading
@@ -16,6 +18,8 @@ require dirname(dirname(dirname(__FILE__))).'/composer/vendor/autoload.php';
 
 use api\modules\v1\user\controllers\UserController;
 use api\modules\v1\organization\controllers\CompanyController;
+use api\modules\v1\lock\controllers\LockBluetoothController;
+use api\modules\v1\accessControl\controllers\AccessControlController;
 use common\config\Constant;
 use common\config\Database;
 
@@ -32,6 +36,8 @@ if(isset($_REQUEST['user_id']) && isset($_REQUEST['company_id']) &&
     $Constant = new Constant();
     $UserController = new UserController($Database);
     $CompanyController = new CompanyController($Database);
+    $LockBluetoothController = new LockBluetoothController($Database);
+    $AccessControlController = new AccessControlController($Database);
 
     // Verify company id
     $company_found = $CompanyController->actionGetOneById($_REQUEST['company_id']);
@@ -61,7 +67,7 @@ if(isset($_REQUEST['user_id']) && isset($_REQUEST['company_id']) &&
     }
     $response['data']['is_admin'] = $is_admin;
 
-    if ($is_admin ==  TRUE ){
+    if ($is_admin ===  TRUE ){
         unset($response['error']);
         // Check for valid user
         $valid_user = $UserController->actionGetOneByIdAndCompanyId($_REQUEST['user_id'],$_REQUEST['company_id']);
@@ -99,6 +105,7 @@ if(isset($_REQUEST['user_id']) && isset($_REQUEST['company_id']) &&
                         default:
                             $response['data']['approval_result'] = "invalid";
                     }
+
                 }
 
 //                if($_REQUEST['approval'] == 1)
