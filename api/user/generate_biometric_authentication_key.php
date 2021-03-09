@@ -1,0 +1,66 @@
+<?php
+// Check Error
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+//include(dirname(dirname(dirname(__FILE__))).'/configurations/config.php');
+require dirname(dirname(dirname(__FILE__))).'/common/config/Database.php';
+require dirname(dirname(dirname(__FILE__))).'/common/config/Constant.php';
+//require dirname(dirname(__FILE__)).'/modules/v1/user/controllers/LoginController.php';
+require dirname(dirname(__FILE__)).'/modules/v1/user/controllers/UserController.php';
+require dirname(dirname(__FILE__)).'/modules/v1/organization/controllers/CompanyController.php';
+
+// Required if your environment does not handle autoloading
+require dirname(dirname(dirname(__FILE__))).'/composer/vendor/autoload.php';
+
+//use api\modules\v1\user\controllers\LoginController;
+use api\modules\v1\user\controllers\UserController;
+use api\modules\v1\organization\controllers\CompanyController;
+use common\config\Constant;
+use common\config\Database;
+
+$response = array();
+
+if(isset($_REQUEST['user_id']))
+{
+    $response['status'] = 'false';
+    $response['error'] = 'Invalid Credentials';
+
+    $user_id = $_REQUEST['user_id'];
+
+    $Database = new Database();
+    $Constant = new Constant();
+//    $LoginController = new LoginController($Database);
+    $CompanyController = new CompanyController($Database);
+//    $collection = $LoginController->actionGetUserCollection();
+    $UserController = new UserController($Database);
+//    $collection = $UserController->actionGetUserCollection();
+
+//    $Login_Query = array('username' => $_REQUEST['username'], 'password' => md5($_REQUEST['password']));
+//    $cursor = $LoginController->actionLogin($collection,$Login_Query);
+
+    $user = $UserController->actionGetOneById($user_id);
+    // Generate Verification Token
+    if( !(isset($user['auth_key'])) || $user['auth_key'] == NULL ){
+        if ($UserController->actionGenerateAuthenticationKey($_REQUEST['user_id'])){
+            unset($response['error']);
+            $response['status'] = 'true';
+            $response['data']['auth_key_generated'] = TRUE;
+            $user_new = $UserController->actionGetOneById($user_id);
+            $response['data']['auth_key'] = $user_new['auth_key'];
+        }
+        else{
+            $response['error'] = 'Key generation failed';
+            $response['data']['auth_key_generated'] = FALSE;
+        }
+    }
+    else if( isset($user['auth_key']) || $user['auth_key'] != NULL ){
+        $response['error'] = 'Key already exist';
+        $response['data'] = FALSE;
+    }
+}
+
+// Display JSON
+header('Content-Type: application/json');
+echo json_encode($response, JSON_PRETTY_PRINT);

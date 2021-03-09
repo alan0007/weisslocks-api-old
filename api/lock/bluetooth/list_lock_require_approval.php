@@ -381,9 +381,9 @@ if(isset($_REQUEST['user_id']) && $_REQUEST['user_id'] != '' &&
                         //-------------
                         // Final Check for Opening Lock
                         //-------------
-                        $last_approval_request_for_lock_id = $approval_request['approval_request_for_lock_id'];
+//                        $last_approval_request_for_lock_id = $approval_request['approval_request_for_lock_id'];
                         // Check Approval
-                        if ( $approval_status == "approved" ) {
+                        if ( isset($approval_status) && $approval_status == "approved" ) {
                             $response['data']['locks'][$x]['approved'] = TRUE;
                         }
                         else{

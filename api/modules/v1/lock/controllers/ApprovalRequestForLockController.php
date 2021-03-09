@@ -9,7 +9,7 @@ use common\v1\models\ApprovalRequestForLock;
 class ApprovalRequestForLockController
 {
 
-    public $modelClass = 'common\v1\models\ApprovalForLock';
+    public $modelClass = 'common\v1\models\ApprovalRequestForLock';
     public $Model;
     public $Database;
     private $server_name;

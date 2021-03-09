@@ -143,7 +143,8 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
                 'first_name' => $_REQUEST['first_name'],
                 'last_name' => $_REQUEST['last_name'],
                 'identification_last_4_digit' => $_REQUEST['identification_last_4_digit'],
-                'department' => $_REQUEST['department']
+                'department' => $_REQUEST['department'],
+                'auth_key' => $_REQUEST['auth_key']
             );
 				
 			if($user_reg->insert($post))
@@ -280,7 +281,8 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
                 'first_name' => $_REQUEST['first_name'],
                 'last_name' => $_REQUEST['last_name'],
                 'identification_last_4_digit' => $_REQUEST['identification_last_4_digit'],
-                'department' => $_REQUEST['department']
+                'department' => $_REQUEST['department'],
+                'auth_key' => $_REQUEST['auth_key']
 			)));
 			
 			// Update Password if Exists
@@ -315,9 +317,6 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 				$criteria = array('user_id'=>(int)$_REQUEST['user_ID']);
 				$collection->update( $criteria ,array('$set' => array( "company_id" =>(int) $_REQUEST['company_id'] ) ) );
 			}
-			
-			
-			
 			
 			echo "<script>window.location='users.php?sucess=true'</script>";
 		}
@@ -419,6 +418,7 @@ include("header.php");?>
                                                 $last_name = $user['last_name'];
                                                 $identification_last_4_digit = $user['identification_last_4_digit'];
                                                 $department = $user['department'];
+                                                $auth_key = $user['auth_key'];
 											}
 										}
 									}
@@ -640,6 +640,10 @@ include("header.php");?>
 													<label>Password : </label>
 													<input type="text" class="form-control" name="password" />
 												</div>
+                                                <div class="form-group">
+                                                    <label>Authentication Key (Biometric) : </label>
+                                                    <input class="form-control" name="auth_key" value="<?php echo $auth_key; ?>" />
+                                                </div>
 												<div class="form-group">
 													<label>Status : </label>
 													<select name="approved" class="form-control">

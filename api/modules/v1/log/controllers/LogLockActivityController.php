@@ -68,6 +68,18 @@ class LogLockActivityController
         return $result; // return object
     }
 
+    public function actionGetByUserIdAndLockId($user_id,$lock_id){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'user_id'=> (int)$user_id ),
+                array( 'lock_id' => (int)$lock_id )
+            )
+        );
+        $result = $collection->find($criteria);
+        return $result; // return object
+    }
+
     public function actionInsert($company_id,$user_id,$lock_id,$lock_type,$description,$category,$status,$error_message,$datetime)
     {
         $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());

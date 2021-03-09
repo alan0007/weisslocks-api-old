@@ -13,7 +13,10 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 	$com_user_id = !isset($_REQUEST['com_user_id']) ? array() : $_REQUEST['com_user_id'];
 	$contracted_company = !isset($_REQUEST['contracted_company']) ? array() : $_REQUEST['contracted_company'];
 	$contracted_company_ref_id = !isset($_REQUEST['contracted_company_ref_id']) ? array() : $_REQUEST['contracted_company_ref_id'];
-	
+    if (isset($_REQUEST['com_user_id'])){
+        $com_user_id = array_map('intval', $com_user_id);
+    }
+
 	if($_REQUEST['company_ID'] == 0)
 	{
 		$user_company = $app_data->company;

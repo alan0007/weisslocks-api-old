@@ -37,7 +37,7 @@ if(isset($_REQUEST['delete']) && $_REQUEST['delete'] == 'lock' && $_REQUEST['id'
                     <h1 class="page-header">Locks</h1>
                 </div>
                 <div class="col-lg-12">
-                    <div style="width:150px;clear:both;padding-left:30px;"><a class="btn btn-lg btn-primary btn-block" href="managelocks.php"> Add Locks </a></div>
+                    <div style="width:150px;clear:both;padding-left:30px;"><a class="btn btn-lg btn-primary btn-block" href="locks_manage.php"> Add Locks </a></div>
                     <?php if(isset($_REQUEST['sucess'])){?>
                     <div style="color:green;text-align: center;">Locks Added or updated Sucessfully!!</div>
                     <?php } ?>
@@ -61,6 +61,9 @@ if(isset($_REQUEST['delete']) && $_REQUEST['delete'] == 'lock' && $_REQUEST['id'
                                             <th>Serial Number</th>
                                             <th>Log Number</th>
                                             <th>Site ID</th>
+                                            <th>Geo-Fencing</th>
+                                            <th>Latitude</th>
+                                            <th>Longitude</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -95,6 +98,10 @@ if(isset($_REQUEST['delete']) && $_REQUEST['delete'] == 'lock' && $_REQUEST['id'
                                                  <th><?php echo $lock['serial_number']; ?></th>
                                                  <th><?php echo $lock['log_number']; ?></th>
                                                  <th><?php echo $lock['site_id']; ?></th>
+                                                 <!-- Added geo fencing on 2020-11-03 -->
+                                                 <th><?php echo $lock['geo_fencing']; ?></th>
+                                                 <th><?php echo $lock['latitude']; ?></th>
+                                                 <th><?php echo $lock['longitude']; ?></th>
                                                 <th>
                                                 <a href="managelocks.php?lock_ID=<?php echo $lock['lock_ID']; ?>">  Edit </a>
                                                 <a onclick="return confirm('Are you sure?')" href="locks.php?delete=lock&id=<?php echo $lock['lock_ID']; ?>">  Delete </a>
@@ -144,7 +151,7 @@ if(isset($_REQUEST['delete']) && $_REQUEST['delete'] == 'lock' && $_REQUEST['id'
 												<th><?php echo $lock['lock_name']; ?></th>
 												<th><?php echo $lock['serial_number']; ?></th>
 												<th>
-												<a href="managelocks.php?lock_ID=<?php echo $lock['lock_ID']; ?>">  Edit </a>
+												<a href="locks_manage.php?lock_ID=<?php echo $lock['lock_ID']; ?>">  Edit </a>
 												<a onclick="return confirm('Are you sure?')" href="locks.php?delete=lock&id=<?php echo $lock['lock_ID']; ?>">  Delete </a>
 												</th>
 											</tr>

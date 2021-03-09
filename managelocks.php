@@ -1,14 +1,27 @@
 <?php
+// Check Error
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include(dirname(__FILE__).'/configurations/config.php');
 checklogin();
 $current_user = $_SESSION['user_id'];
+
 if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
 {
+    // Get input
 	$lock_group_id = isset($_REQUEST['lock_group_id']) ? $_REQUEST['lock_group_id'] : array();
 	if (isset($_REQUEST['lock_group_id'])){
 		$lock_group_id = array_map('intval', $lock_group_id);
 	}
+    $linked_keys = null;
+    if(isset($_REQUEST['linked_keys'])){
+        $linked_keys = array_map('intval', $_REQUEST['linked_keys']);
+    }
+
 	$locksData = array();
+
 	if($_REQUEST['lock_ID'] == 0)
 	{
 		$locks = $app_data->locks;
@@ -20,7 +33,7 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
             'log_number'  => $_REQUEST['log_number'],
             //'lock_group_id'  => json_encode($lock_group_id),
             'lock_group_id'  => $lock_group_id,
-            'linked_keys'  => $_REQUEST['linked_keys'],
+            'linked_keys'  => $linked_keys,
             'lock_area'  => $_REQUEST['lock_area'],
             'lock_address'  => $_REQUEST['lock_address'],
             'lock_loc_unit'  => $_REQUEST['lock_loc_unit'],
@@ -35,6 +48,10 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
             'entrance_visibility'  => $_REQUEST['entrance_visibility'],
             // Added 2020-10-15
             'display_name'  => $_REQUEST['display_name'],
+            'geo_fencing' => (boolean) $_REQUEST['geo_fencing'],
+            'unlock_radius' => (float) $_REQUEST['unlock_radius'],
+            'latitude' => (float) $_REQUEST['latitude'],
+            'longitude' => (float) $_REQUEST['longitude']
         );
 		//$locks->insert($post);
 		if($locks->insert($post)){
@@ -99,7 +116,11 @@ if(isset($_REQUEST['process']) && $_REQUEST['process'] == 'Save')
             'lock_mechanism'  => $_REQUEST['lock_mechanism'],
             'brand'  => $_REQUEST['brand'],
             'entrance_visibility'  => $_REQUEST['entrance_visibility'],
-            'display_name'  => $_REQUEST['display_name']
+            'display_name'  => $_REQUEST['display_name'],
+            'geo_fencing' => (boolean) $_REQUEST['geo_fencing'],
+            'unlock_radius' => (float) $_REQUEST['unlock_radius'],
+            'latitude' => (float) $_REQUEST['latitude'],
+            'longitude' => (float) $_REQUEST['longitude']
 		)));
 		$locksData = $collection->findOne( $criteria );
 	}
@@ -163,6 +184,12 @@ include("header.php");?>
                                     $brand = '';
                                     $entrance_visibility = '';
                                     $display_name = '';
+                                    $geo_fencing = NULL;
+                                    $unlock_radius = 0.0;
+                                    $latitude = '';
+                                    $longitude = '';
+                                    $site_id = '';
+                                    $require_second_approval = FALSE;
 									if(isset($_REQUEST['lock_ID']))
 									{
 										$locks_details = $app_data->locks;
@@ -188,6 +215,10 @@ include("header.php");?>
                                                 $brand = $locks_detail['brand'];
                                                 $entrance_visibility =  $locks_detail['entrance_visibility'];
 												$site_id = $locks_detail['site_id'];
+                                                $geo_fencing = $locks_detail['geo_fencing'];
+                                                $unlock_radius = $locks_detail['unlock_radius'];
+                                                $latitude = $locks_detail['latitude'];
+                                                $longitude = $locks_detail['longitude'];
 
 												$display_name = '';
                                                 if (isset($locks_detail['display_name'])){
@@ -202,6 +233,9 @@ include("header.php");?>
 													echo $lock_group_id[$i];
 												}
 												*/
+
+                                                // Get lock setting from approval_for_lock
+                                                
 												
 											}
 										}
@@ -295,6 +329,14 @@ include("header.php");?>
                                         </div>
 
                                         <div class="form-group">
+                                            <label>Require Second Approval : </label>
+                                            <select name="require_second_approval" class="form-control">
+                                                <option <?php echo $require_second_approval == FALSE ? 'selected="selected"' : ''; ?> value="0">No</option>
+                                                <option <?php echo $require_second_approval == TRUE ? 'selected="selected"' : ''; ?> value="1">Yes</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
                                             <label>Lock Brand</label>
                                             <input class="form-control" name="brand" value="<?php echo $brand; ?>">
                                         </div>
@@ -309,9 +351,7 @@ include("header.php");?>
                                             <label>Log Number</label>
                                             <input class="form-control" name="log_number" value="<?php echo $log_number; ?>">
                                         </div>
-										
-										
-										
+
                                         <div class="form-group">
                                             <label>Lock GroupID </label><br/>
 											
@@ -355,7 +395,33 @@ include("header.php");?>
                                             <label>Linked Keys</label>
                                             <input class="form-control" name="linked_keys" value="<?php echo $linked_keys; ?>">
                                         </div>-->
-										<div class="form-group">
+
+                                        <!-- Geo-Fencing -->
+                                        <h3>Geo Fencing</h3>
+<!--                                        --><?php //echo 'Geo Fencing data: ';var_dump($geo_fencing); ?>
+                                        <div class="form-group">
+                                            <label>Geo Fencing Activated : </label>
+                                            <select name="geo_fencing" class="form-control">
+                                                <option <?php echo $geo_fencing == FALSE ? 'selected="selected"' : ''; ?> value="0">No</option>
+                                                <option <?php echo $geo_fencing == TRUE ? 'selected="selected"' : ''; ?> value="1">Yes</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Unlock Radius (meter): </label>
+                                            <input class="form-control" name="unlock_radius" value="<?php echo $unlock_radius; ?>">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Lock Latitude : </label>
+                                            <input class="form-control" name="latitude" value="<?php echo $latitude; ?>">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Lock Longitude : </label>
+                                            <input class="form-control" name="longitude" value="<?php echo $longitude; ?>">
+                                        </div>
+
+                                        <!-- Location -->
+                                        <h3>Location Details</h3>
+                                        <div class="form-group">
                                             <label>Locks Area </label>
 											<select name="lock_area" class="form-control">
 												<option <?php echo $lock_area == 'North' ? 'selected="selected"' : ''; ?> value="North">North</option>

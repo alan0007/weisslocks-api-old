@@ -29,6 +29,7 @@ if(isset($_REQUEST['username']) && isset($_REQUEST['password']) && isset($_REQUE
 
     $username = $_REQUEST['username'];
     $password = $_REQUEST['password'];
+    $udid_ios = (string) $_REQUEST['UDID_IOS'];
 
     $Database = new Database();
     $Constant = new Constant();
@@ -52,9 +53,30 @@ if(isset($_REQUEST['username']) && isset($_REQUEST['password']) && isset($_REQUE
             exit(json_encode($response, JSON_PRETTY_PRINT));
         }
         else {
+            // Verify UDID
+            $response['correct_phone'] = NULL;
+            if ( $cursor['UDID_IOS'] != NULL && $cursor['UDID_IOS'] != '' ){
+                if ( $udid_ios == (string) $cursor['UDID_IOS']){
+                    $response['correct_phone'] = TRUE;
+                }
+                else{
+                    $response['correct_phone'] = FALSE;
+                    $response['error'] = 'Wrong phone';
+//                    exit(json_encode($response, JSON_PRETTY_PRINT));
+                }
+            }
+            else{
+                $response['correct_phone'] = NULL;
+            }
 
             $update_udid = $UserController->actionUpdateUdid($cursor['user_id'], $cursor['role'], $cursor['UDID_IOS']);
             $response['udid_updated'] = $update_udid;
+            if ( $update_udid === TRUE){
+                $response['first_login'] = TRUE;
+            }
+            else{
+                $response['first_login'] = FALSE;
+            }
 
             $response['status'] = 'true';
             unset($response['error']);
@@ -74,7 +96,10 @@ if(isset($_REQUEST['username']) && isset($_REQUEST['password']) && isset($_REQUE
                     $cursor['company_ref_id'] = $coms['company_ref'];
 
                     for ($k = 0; $k <= count($coms['contracted_name']); $k++) {
-                        if (false !== $key = array_search(json_decode($cursor['user_company']), $coms['contracted_ref_id'])) {
+//                        if (false !== $key = array_search(json_decode($cursor['user_company']), $coms['contracted_ref_id'])) {
+//                            $cursor['contracted_company_name'] = $coms['contracted_name'][$key];
+//                        }
+                        if (false !== $key = array_search(($cursor['user_company']), $coms['contracted_ref_id'])) {
                             $cursor['contracted_company_name'] = $coms['contracted_name'][$key];
                         }
                     }
@@ -84,6 +109,7 @@ if(isset($_REQUEST['username']) && isset($_REQUEST['password']) && isset($_REQUE
             unset($cursor['password']);
             unset($cursor['UDID_IOS']);
             unset($cursor['token']);
+            unset($cursor['auth_key']);
 
             $response['data'] = $cursor;
         }

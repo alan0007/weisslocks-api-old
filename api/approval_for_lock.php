@@ -32,6 +32,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'add'
         'lock_id'  => (int) $_REQUEST['lock_id'],
         'require_admin_approval'  => (Boolean) $_REQUEST['require_admin_approval'],
         'require_subadmin_approval'  => (Boolean) $_REQUEST['require_subadmin_approval'],
+        'require_second_approval' => (Boolean) $_REQUEST['require_second_approval']
     );
     if($approval_for_lock->insert($post)){
         $Reg_Query = array('_id' => $post['_id'] );

@@ -112,6 +112,10 @@ if(isset($_REQUEST['admin_user_id']) && isset($_REQUEST['company_id']) )
                     unset($uu['UDID_IOS']);
                     unset($uu['token']);
                     unset($uu['device_id']);
+
+                    unset($response['error']);
+                    $response['status'] = 'true';
+
                     $response['data']['users'][] = $uu;
                 }
             }

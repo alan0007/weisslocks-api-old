@@ -179,7 +179,7 @@ class UserController
 
     }
 
-    public function actionVerifyPhoneNumber($country_code, $phone_number){
+    public function actionGetByPhoneNumber($country_code, $phone_number){
         $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
         $criteria = array(
             '$and' => array(
@@ -187,8 +187,8 @@ class UserController
                 array( 'phone_number' => $phone_number )
             )
         );
-        $result = $collection->findOne($criteria);
-        return $result; // return array
+        $result = $collection->find($criteria);
+        return $result; // return object
     }
 
     public function actionUpdateApproval($user_id,$approval){
@@ -248,6 +248,77 @@ class UserController
         }else{
             return FALSE;
         }
+    }
+
+    public function actionGetApprovalAuthenticationKey($user_id){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $result = $collection->findOne(
+            array('user_id'=>(int)$user_id)
+        );
+        return $result; // return array
+    }
+
+    public function actionGetAuthenticationKey($username,$password){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'username'=> $username ),
+                array( 'password' => md5($password) )
+            )
+        );
+        $result = $collection->findOne($criteria);
+        return $result; // return array
+    }
+
+    public function actionGenerateAuthenticationKey($user_id){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array('user_id'=>(int)$user_id );
+
+        $collection->update(
+            $criteria ,array(
+                '$set' => array(
+                    'auth_key' => time().rand(),
+                    'token' => time().rand()
+                )
+            )
+        );
+
+        if ($collection != null){
+            return TRUE;
+        }
+        else{
+            return FALSE;
+        }
+
+    }
+
+    public function actionVerifyAuthenticationKey($user_id,$auth_key){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'user_id'=> (int)$user_id ),
+                array( 'auth_key'=> $auth_key )
+            )
+        );
+        $result = $collection->findOne($criteria);
+        if ($collection != null){
+            return TRUE;
+        }
+        else{
+            return FALSE;
+        }
+    }
+
+    public function actionLoginBiometricUsingAuthenticationKey($username,$auth_key){
+        $collection = $this->Database->getCollectionPhp5($this->app_data,$this->Model->tableName());
+        $criteria = array(
+            '$and' => array(
+                array( 'username'=> $username ),
+                array( 'auth_key'=> (string) $auth_key )
+            )
+        );
+        $result = $collection->findOne($criteria);
+        return $result;
     }
 
 }

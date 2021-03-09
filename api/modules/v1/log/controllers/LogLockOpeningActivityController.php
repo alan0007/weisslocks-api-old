@@ -86,4 +86,7 @@ class LogLockOpeningActivityController
         }
     }
 
+    public function actionCompareTime(){
+
+    }
 }

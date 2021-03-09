@@ -62,6 +62,18 @@ if(isset($_REQUEST['company_id'])
             unset($cursor['_id']);
             $username = $cursor['username'];
             $full_name = $cursor['full_name'];
+            if (isset($cursor['first_name'])){
+                $first_name = $cursor['first_name'];
+            }
+            else{
+                $first_name = "";
+            }
+            if (isset($cursor['last_name'])){
+                $last_name = $cursor['last_name'];;
+            }
+            else{
+                $last_name = "";
+            }
         }
         else{
             $full_name = "";
@@ -72,7 +84,9 @@ if(isset($_REQUEST['company_id'])
             $response['data'][$i]['company_id'] = $approval_request['company_id'];
             $response['data'][$i]['user_id'] = $approval_request['user_id'];
             $response['data'][$i]['username'] = $username;
-            $response['data'][$i]['full_name'] = $full_name; // User full name
+//            $response['data'][$i]['full_name'] = $full_name; // User full name
+            $response['data'][$i]['first_name'] = $first_name; // User full name
+            $response['data'][$i]['last_name'] = $last_name; // User full name
             $response['data'][$i]['permit_id'] = $approval_request['permit_id'];
             $response['data'][$i]['lock_id'] = $approval_request['lock_id'];
             $response['data'][$i]['created_timestamp'] = $approval_request['created_timestamp'];
@@ -134,6 +148,18 @@ if(isset($_REQUEST['company_id'])
             if(isset($cursor_lock)){
                 $response['data'][$i]['lock_name'] = $cursor_lock['lock_name'];
                 $response['data'][$i]['serial_number'] = $cursor_lock['serial_number'];
+                $response['data'][$i]['lock_type'] = $cursor_lock['lock_type'];
+                $response['data'][$i]['lock_model'] = $cursor_lock['lock_model'];
+                $response['data'][$i]['lock_mechanism'] = $cursor_lock['lock_mechanism'];
+                $response['data'][$i]['brand'] = $cursor_lock['brand'];
+                $response['data'][$i]['entrance_visibility'] = $cursor_lock['entrance_visibility'];
+                $response['data'][$i]['lock_group_id'] = $cursor_lock['lock_group_id'];
+                $response['data'][$i]['log_number'] = $cursor_lock['log_number'];
+                $response['data'][$i]['site_id'] = $cursor_lock['site_id'];
+                $response['data'][$i]['geo_fencing'] = $cursor_lock['geo_fencing'];
+                $response['data'][$i]['latitude'] = $cursor_lock['latitude'];
+                $response['data'][$i]['longitude'] = $cursor_lock['longitude'];
+                $response['data'][$i]['unlock_radius'] = $cursor_lock['unlock_radius'];
             }
 
             // Datetime from and To

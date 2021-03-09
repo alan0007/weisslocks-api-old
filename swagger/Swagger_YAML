@@ -8,52 +8,60 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 1.1.0
+  version: 1.2.0
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
 servers:
-- url: http://app.weisslocks.com/api/
-- url: http://notification.weisslocks.com/api/
+  - url: http://app.weisslocks.com/api/
+  - url: http://notification.weisslocks.com/api/
 tags:
-- name: approval/lock
-  description: Request for approval
-- name: lock/bluetooth
-  description: Bluetooth lock
-- name: user
-  description: User Function 
-- name: user/registration
-  description: User Registration Function
-- name: lockserver
-  description: Lock Server Function 
-- name: otp
-  description: One Time Password (OTP) Generation and Verification
-- name: log/user_activity
-  description: Log of User Activity
-- name: log/lock_activity
-  description: Log of Lock Activity
-- name: sms
-  description: SMS Function
-- name: test
-  description: Test Function Only
+  - name: approval/lock_setting
+    description: Approval Setting for Lock
+  - name: approval/lock_request_approval_for_normal_access
+    description: Request approval for Normal Access
+  - name: approval/lock_request_approval_for_special_access
+    description: Request approval for Special Access (Single Day)
+  - name: approval/lock_request_approval_for_second_approval
+    description: Request approval for Second Approval
+  - name: lock/bluetooth
+    description: Bluetooth lock
+  - name: user
+    description: User Function
+  - name: user/registration
+    description: User Registration Function
+  - name: lockserver
+    description: Lock Server Function
+  - name: otp
+    description: One Time Password (OTP) Generation and Verification
+  - name: log/user_activity
+    description: Log of User Activity
+  - name: log/lock_activity
+    description: Log of Lock Activity
+  - name: geo_fencing
+    description: Geo Fencing Function
+  - name: sms
+    description: SMS Function
+  - name: test
+    description: Test Function Only
 
 paths:
   /approval/lock/list_approval_for_lock.php:
     get:
       tags:
-      - approval/lock
+        - approval/lock_setting
       summary: Finds Request Approval for Locks
-      description: This will list out all the lock that needs approval for user under the same company. 
+      description: This will list out all the lock that needs approval for user under the same company.
         URL is at http://app.weisslocks.com/api/approval/lock/list_approval_for_lock.php
       operationId: list_approval_for_lock
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -71,44 +79,44 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /approval/lock/add_approval_for_lock.php:
     get:
       tags:
-      - approval/lock
-      summary: Add approval for bluetooth lock
-      description: This is to set lock to require admin approval or not. 
+        - approval/lock_setting
+      summary: Add bluetooth lock approval request for normal access
+      description: This is to set lock to require admin approval or not.
         URL is at http://app.weisslocks.com/api/approval/lock/add_approval_for_lock.php
       operationId: add_approval_for_lock
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: lock_id
-        in: query
-        description: lock id in number , e.g 33,34,35,...
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: require_admin_approval
-        in: query
-        description: true/false 
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: require_subadmin_approval
-        in: query
-        description: true/false 
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: require_admin_approval
+          in: query
+          description: true/false
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: require_subadmin_approval
+          in: query
+          description: true/false
+          required: true
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -132,30 +140,30 @@ paths:
         "405":
           description: Validation exception
           content: {}
-    
-  /approval/lock/list_request_for_admin.php:
+
+  /approval/lock/list_admin_lock_request_approval_for_normal_access.php:
     get:
       tags:
-      - approval/lock
+        - approval/lock_request_approval_for_normal_access
       summary: (Admin Only) List Request Approval for Locks
-      description: This will list out all the request for lock approval under the same company. 
+      description: This will list out all the request for lock approval under the same company.
         URL is at http://app.weisslocks.com/api/approval/lock/list_request_for_admin.php
-      operationId: list_request_for_admin
+      operationId: list_admin_lock_request_approval_for_normal_access
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: user_id
-        in: query
-        description: e.g. 374
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -173,30 +181,111 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
-  /approval/lock/list_request.php:
+
+  /approval/lock/list_admin_lock_request_approval_for_special_access.php:
     get:
       tags:
-      - approval/lock
-      summary: (For all User, including admin) List Request Approval for Locks for single user
-      description: This will list out all the request for specified user's lock approval. 
-        URL is at http://app.weisslocks.com/api/approval/lock/list_request.php
-      operationId: list_request
+        - approval/lock_request_approval_for_special_access
+      summary: (Admin Only) List Request Approval for Locks
+      description: This will list out all the request for lock approval under the same company.
+        URL is at http://app.weisslocks.com/api/approval/lock/list_request_for_admin.php
+      operationId: list_admin_lock_request_approval_for_special_access
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: user_id
-        in: query
-        description: e.g. 374
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_admin_request'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_admin_request'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /approval/lock/list_admin_lock_request_approval_for_second_approval.php:
+    get:
+      tags:
+        - approval/lock_request_approval_for_second_approval
+      summary: (Admin Only) List Request Approval for Locks
+      description: This will list out all the request for lock approval under the same company.
+        URL is at http://app.weisslocks.com/api/approval/lock/list_request_for_admin.php
+      operationId: list_admin_lock_request_approval_for_second_approval
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_admin_request'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_admin_request'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /approval/lock/list_lock_request_approval_for_normal_access.php:
+    get:
+      tags:
+        - approval/lock_request_approval_for_normal_access
+      summary: "(For all User, including admin) List Lock Request Approval for Normal Access for single user"
+      description: "This will list out all the request for specified user's lock approval."
+      operationId: list_lock_request_approval_for_normal_access
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -214,74 +303,301 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
-  /approval/lock/add_request.php:
+
+  /approval/lock/list_lock_request_approval_for_special_access.php:
+    get:
+      tags:
+        - approval/lock_request_approval_for_special_access
+      summary: "(For all User, including admin) List Lock Request Approval for Normal Access for single user"
+      description: "This will list out all the request for specified user's lock approval."
+      operationId: list_lock_request_approval_for_special_access
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_request'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_request'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /approval/lock/list_lock_request_approval_for_second_approval.php:
+    get:
+      tags:
+        - approval/lock_request_approval_for_second_approval
+      summary: "(For all User, including admin) List Lock Request Approval for Normal Access for single user"
+      description: "This will list out all the request for specified user's lock approval."
+      operationId: list_lock_request_approval_for_second_approval
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_request'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_request'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /approval/lock/add_lock_request_approval_for_normal_access.php:
     post:
       tags:
-      - approval/lock
-      summary: Send request for approval.
+        - approval/lock_request_approval_for_normal_access
+      summary: "Send request for approval for normal access"
+      description: "Send out request for approval for a specific lock with user's a permit recorded in mobile app.
+        Lock Activity Logs is generated automatically"
+      operationId: add_lock_request_approval_for_normal_access
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: user_id
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: created_by_user_id
+          in: query
+          description: User_id of user who request for lock.
+            User can request access for another user_id
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: date_from
+          in: query
+          description: date in format in yyyy-mm-dd, e.g. 2020-07-02
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: date_to
+          in: query
+          description: date in format in yyyy-mm-dd, e.g. 2022-07-02
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: time_from
+          in: query
+          description: time format in H:i:s (24 hour format), 00:05:37
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: time_to
+          in: query
+          description: time format in H:i:s (24 hour format), 23:59:37
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: is_daily_timeslot
+          in: query
+          description: Accept 1 0r 0 only, 0 = False, 1 = True
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: day_of_week
+          in: query
+          description: days of week in number format separated by comma -> 0,1,2,3,4,5,6
+          required: false
+          style: form
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+        "400":
+          description: Invalid value
+          content: {}
+
+  /approval/lock/add_lock_request_approval_for_special_access.php:
+    post:
+      tags:
+        - approval/lock_request_approval_for_special_access
+      summary: "Send request for approval for single day special access for period of time, with overriding access for that particular day."
+      description: "Send out request for approval for a specific lock with user's a permit recorded in mobile app.
+        Lock Activity Logs is generated automatically"
+      operationId: add_lock_request_approval_for_special_access
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: user_id
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: created_by_user_id
+          in: query
+          description: User_id of user who request for lock.
+            User can request access for another user_id
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: date
+          in: query
+          description: date in format in yyyy-mm-dd, e.g. 2020-07-02
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: time_from
+          in: query
+          description: time format in H:i:s (24 hour format), 00:05:37
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: time_to
+          in: query
+          description: time format in H:i:s (24 hour format), 23:59:37
+          required: true
+          style: form
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+        "400":
+          description: Invalid value
+          content: {}
+
+  /approval/lock/add_lock_request_approval_for_second_approval.php:
+    post:
+      tags:
+        - approval/lock_request_approval_for_second_approval
+      summary: "Send request for approval for second approval when user is granted access for norma and special access."
       description: "Send out request for approval for a specific lock with user's a permit recorded in mobile app.
         URL is at http://app.weisslocks.com/api/approval/lock/add_request.php
         Lock Activity Logs is generated automatically"
-      operationId: add_request
+      operationId: add_lock_request_approval_for_second_approval
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: user_id
-        in: query
-        description: user_id
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: created_by_user_id
-        in: query
-        description: User_id of user who request for lock.
-          User can request access for another user_id
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: lock_id
-        in: query
-        description: lock id in number , e.g 33,34,35,... 
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: from_date
-        in: query
-        description: date in format in yyyy-mm-dd, e.g. 2020-07-02
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: to_date
-        in: query
-        description: date in format in yyyy-mm-dd, e.g. 2020-07-02
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: from_time
-        in: query
-        description: time format in H:i:s (24 hour format), 08:05:37
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: to_time
-        in: query
-        description: time format in H:i:s (24 hour format), 08:05:37
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: user_id
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: created_by_user_id
+          in: query
+          description: User_id of user who request for lock.
+            User can request access for another user_id
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -300,36 +616,36 @@ paths:
           description: Invalid value
           content: {}
 
-  /approval/lock/approve_request.php:
+  /approval/lock/approve_request_for_normal_access.php:
     post:
       tags:
-      - approval/lock
+        - approval/lock_request_approval_for_normal_access
       summary: Approve Request to open by Admin
-      description: Admin will use this to approve lock. Notification will be sent out (to be tested). 
+      description: Admin will use this to approve lock. Notification will be sent out (to be tested).
         URL is at http://app.weisslocks.com/api/approval/lock/approve_request.php
-      operationId: approve
+      operationId: approve_request_for_normal_access
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: user_id
-        in: query
-        description: e.g 374
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: approval_request_for_lock_id
-        in: query
-        description: number in 1,2,3,4,... 
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: id
+          in: query
+          description: number in 1,2,3,4,...
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -348,36 +664,36 @@ paths:
           description: Invalid value
           content: {}
 
-  /approval/lock/reject_request.php:
+  /approval/lock/approve_request_for_special_access.php:
     post:
       tags:
-      - approval/lock
-      summary: Reject Request to open by Admin
-      description: Admin will use this to Reject lock. Notification will be sent out (to be tested). 
-        URL is at http://app.weisslocks.com/api/approval/lock/reject_request.php
-      operationId: reject
+        - approval/lock_request_approval_for_special_access
+      summary: Approve Request to open by Admin
+      description: Admin will use this to approve lock. Notification will be sent out (to be tested).
+        URL is at http://app.weisslocks.com/api/approval/lock/approve_request.php
+      operationId: approve_request_for_special_access
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: user_id
-        in: query
-        description: e.g 374
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: approval_request_for_lock_id
-        in: query
-        description: number in 1,2,3,4,... 
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: id
+          in: query
+          description: number in 1,2,3,4,...
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -396,22 +712,36 @@ paths:
           description: Invalid value
           content: {}
 
-  /lock/bluetooth/single_lock.php:
-    get:
+  /approval/lock/approve_request_for_second_approval.php:
+    post:
       tags:
-      - lock/bluetooth
-      summary: Get single_lock info
-      description: This is extension to previous API at req_bluetooth.php, to open bluetooth lock.
-        New URL is updated
-      operationId: single_lock
+        - approval/lock_request_approval_for_second_approval
+      summary: Approve Request to open by Admin
+      description: Admin will use this to approve lock. Notification will be sent out (to be tested).
+        URL is at http://app.weisslocks.com/api/approval/lock/approve_request.php
+      operationId: approve_request_for_second_approval
       parameters:
-      - name: lock_name
-        in: query
-        description: e.g.lock abd123
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: id
+          in: query
+          description: number in 1,2,3,4,...
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -420,14 +750,158 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/lock'
+                  $ref: '#/components/schemas/approval_request_for_lock'
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/lock'
+                  $ref: '#/components/schemas/approval_request_for_lock'
         "400":
-          description: Invalid status value
+          description: Invalid value
+          content: {}
+
+  /approval/lock/reject_request_for_normal_access.php:
+    post:
+      tags:
+        - approval/lock_request_approval_for_normal_access
+      summary: Reject Request to open by Admin
+      description: Admin will use this to Reject lock. Notification will be sent out (to be tested).
+        URL is at http://app.weisslocks.com/api/approval/lock/reject_request.php
+      operationId: reject_request_for_normal_access
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: id
+          in: query
+          description: number in 1,2,3,4,...
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+        "400":
+          description: Invalid value
+          content: {}
+
+  /approval/lock/reject_request_for_special_access.php:
+    post:
+      tags:
+        - approval/reject_request_approval_for_special_access
+      summary: Reject Request to open by Admin
+      description: Admin will use this to Reject lock. Notification will be sent out (to be tested).
+        URL is at http://app.weisslocks.com/api/approval/lock/reject_request.php
+      operationId: reject_request_for_special_access
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: id
+          in: query
+          description: number in 1,2,3,4,...
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+        "400":
+          description: Invalid value
+          content: {}
+
+  /approval/lock/reject_request_for_second_approval.php:
+    post:
+      tags:
+        - approval/lock_request_approval_for_second_approval
+      summary: Reject Request to open by Admin
+      description: Admin will use this to Reject lock. Notification will be sent out (to be tested).
+        URL is at http://app.weisslocks.com/api/approval/lock/reject_request.php
+      operationId: reject_request_for_second_approval
+      parameters:
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: id
+          in: query
+          description: number in 1,2,3,4,...
+          required: true
+          style: form
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/approval_request_for_lock'
+        "400":
+          description: Invalid value
           content: {}
 
   /lock/bluetooth/single_lock_by_lock_id.php:
@@ -435,7 +909,8 @@ paths:
       tags:
         - lock/bluetooth
       summary: Get single_lock info
-      description: Get One Lock Information using Lock ID
+      description: 'Get One Lock Information using Lock ID.<br>
+        Open Lock Allowed is shown with additional information.'
       operationId: single_lock_by_lock_id
       parameters:
         - name: company_id
@@ -459,6 +934,20 @@ paths:
           style: form
           schema:
             type: integer
+        - name: latitude
+          in: query
+          description: "latitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
+        - name: longitude
+          in: query
+          description: "longitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
       responses:
         "200":
           description: successful operation
@@ -615,26 +1104,40 @@ paths:
   /lock/bluetooth/list_lock.php:
     get:
       tags:
-      - lock/bluetooth
+        - lock/bluetooth
       summary: List bluetooth lock (All)
       description: This will list out bluetooth lock for a user.
         Updated to allow without using permit. URL is at updated.
       operationId: list_lock
       parameters:
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: user_id
-        in: query
-        description: e.g. 374
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: e.g. 374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: latitude
+          in: query
+          description: "latitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
+        - name: longitude
+          in: query
+          description: "longitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
       responses:
         "200":
           description: successful operation
@@ -697,34 +1200,48 @@ paths:
   /lock/bluetooth/open_lock.php:
     post:
       tags:
-      - lock/bluetooth
+        - lock/bluetooth
       summary: Open Bluetooth Lock
       description: "This is extension to previous API at req_bluetooth.php, to open bluetooth lock.
         New URL is updated. <br>
         Lock Activity Logs is generated automatically"
       operationId: open_lock
       parameters:
-      - name: user_id
-        in: query
-        description: e.g.374
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: company_id
-        in: query
-        description: e.g. PA:27, IOS:25, SP:12
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: lock_id
-        in: query
-        description: lock id in number , e.g 33,34,35,...
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: user_id
+          in: query
+          description: e.g.374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: company_id
+          in: query
+          description: e.g. PA:27, IOS:25, SP:12
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: latitude
+          in: query
+          description: "latitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
+        - name: longitude
+          in: query
+          description: "longitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
       responses:
         "200":
           description: successful operation
@@ -818,25 +1335,25 @@ paths:
   /lockserver/login.php:
     get:
       tags:
-      - lockserver
+        - lockserver
       summary: Login with username and password into Locks Server, to get temporary token
       description: This is to get username, from User ID
       operationId: user_lock_server_login
       parameters:
-      - name: lock_server_username
-        in: query
-        description: lock_server_username
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: lock_server_password
-        in: query
-        description: Lock Server Password
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: lock_server_username
+          in: query
+          description: lock_server_username
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: lock_server_password
+          in: query
+          description: Lock Server Password
+          required: true
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -854,37 +1371,37 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /lockserver/verify_code.php:
     get:
       tags:
-      - lockserver
+        - lockserver
       summary: Get Username
       description: This is to verify code received via SMS
       operationId: user_lock_server_verify_code
       parameters:
-      - name: token_temporary
-        in: query
-        description: temporary token that is used for sms verification
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: sms_code
-        in: query
-        description: SMS code received
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: mobile_os
-        in: query
-        description: default is android
-        required: true
-        style: form
-        schema:
-          type: string
-		  
+        - name: token_temporary
+          in: query
+          description: temporary token that is used for sms verification
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: sms_code
+          in: query
+          description: SMS code received
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: mobile_os
+          in: query
+          description: default is android
+          required: true
+          style: form
+          schema:
+            type: string
+
       responses:
         "200":
           description: successful operation
@@ -906,32 +1423,32 @@ paths:
   /lockserver/verify_user.php:
     get:
       tags:
-      - lockserver
+        - lockserver
       summary: Verify User Details
       description: This is to verify user
       operationId: user_lock_server_verify_user
       parameters:
-      - name: lock_server_username
-        in: query
-        description: lock server username
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: token
-        in: query
-        description: token
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: phone_number
-        in: query
-        description: mobile phone number
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: lock_server_username
+          in: query
+          description: lock server username
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: token
+          in: query
+          description: token
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: phone_number
+          in: query
+          description: mobile phone number
+          required: true
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -949,36 +1466,36 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /lockserver/verify_log_number.php:
     get:
       tags:
-      - lockserver
+        - lockserver
       summary: Verify Lock's Log Number
       description: This is to verify lock details
       operationId: user_lock_server_verify_lock
       parameters:
-      - name: lock_id
-        in: query
-        description: lock id in number , e.g 33,34,35,...
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: log_number
-        in: query
-        description: lock log number
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: token
-        in: query
-        description: token
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: lock_id
+          in: query
+          description: lock id in number , e.g 33,34,35,...
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: log_number
+          in: query
+          description: lock log number
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: token
+          in: query
+          description: token
+          required: true
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -996,36 +1513,156 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /user/login.php:
     get:
       tags:
-      - user
+        - user
       summary: Login using username, password and mobile/device UDID
       description: This is to get username, from User ID
       operationId: login
       parameters:
-      - name: username
-        in: query
-        description: username
-        style: form
-        required: true
-        schema:
-          type: string
-      - name: password
-        in: query
-        description: password
-        style: form
-        required: true
-        schema:
-          type: string
-      - name: UDID_IOS
-        in: query
-        description: UDID_IOS
-        style: form
-        required: true
-        schema:
-          type: string
+        - name: username
+          in: query
+          description: username
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: password
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: UDID_IOS
+          in: query
+          description: UDID_IOS
+          style: form
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /user/login_biometric.php:
+    get:
+      tags:
+        - user
+      summary: Login using username, mobile/device UDID as biometric login
+      description: This is to get login from User ID
+      operationId: login_biometric
+      parameters:
+        - name: username
+          in: query
+          description: username
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: auth_key
+          in: query
+          description: auth_key
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: UDID_IOS
+          in: query
+          description: UDID_IOS
+          style: form
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /user/get_biometric_authentication_key.php:
+    get:
+      tags:
+        - user
+      summary: Get Authentication Key for biometric login
+      description: This is to get Authentication Key from User ID
+      operationId: get_authentication_key
+      parameters:
+        - name: username
+          in: query
+          description: username
+          style: form
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: password
+          style: form
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /user/generate_biometric_authentication_key.php:
+    get:
+      tags:
+        - user
+      summary: Get Authentication Key for biometric login
+      description: This is to get Authentication Key from User ID
+      operationId: generate_biometric_authentication_key
+      parameters:
+        - name: user_id
+          in: query
+          description: user_id
+          style: form
+          required: true
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -1047,25 +1684,32 @@ paths:
   /user/reset_password_request.php:
     post:
       tags:
-      - user
+        - user
       summary: reset_password_request
       description: This is to get username, from User ID
       operationId: reset_password_request
       parameters:
-      - name: country_code
-        in: query
-        description: "Without + sign e.g.65"
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: phone_number
-        in: query
-        description: e.g.88688828
-        required: true
-        style: form
-        schema:
-          type: string
+        - name: username
+          in: query
+          description: "username"
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: country_code
+          in: query
+          description: "Without + sign e.g.65"
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: phone_number
+          in: query
+          description: "This is to indicate phone number to send to, e.g.88688828"
+          required: true
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -1083,36 +1727,36 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /user/update_password.php:
     post:
       tags:
-      - user
+        - user
       summary: update_password
       description: This is to update password, from User ID
       operationId: update_password
       parameters:
-      - name: user_id
-        in: query
-        description: e.g.374
-        required: true
-        style: form
-        schema:
-          type: integer
-      - name: password
-        in: query
-        description: e.g.xxx
-        required: true
-        style: form
-        schema:
-          type: string
-      - name: company_id
-        in: query
-        description: e.g.27
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: user_id
+          in: query
+          description: e.g.374
+          required: true
+          style: form
+          schema:
+            type: integer
+        - name: password
+          in: query
+          description: e.g.xxx
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: company_id
+          in: query
+          description: e.g.27
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -1130,22 +1774,22 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /user/username.php:
     get:
       tags:
-      - user
+        - user
       summary: Get Username
       description: This is to get username, from User ID
       operationId: get_username
       parameters:
-      - name: user_id
-        in: query
-        description: e.g.374
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: user_id
+          in: query
+          description: e.g.374
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -1163,22 +1807,22 @@ paths:
         "400":
           description: Invalid status value
           content: {}
-		  
+
   /user/user_details.php:
     get:
       tags:
-      - user
+        - user
       summary: Get User Details
       description: This is to get User Details, from User ID
       operationId: user_details
       parameters:
-      - name: user_id
-        in: query
-        description: e.g.374
-        required: true
-        style: form
-        schema:
-          type: integer
+        - name: user_id
+          in: query
+          description: e.g.374
+          required: true
+          style: form
+          schema:
+            type: integer
       responses:
         "200":
           description: successful operation
@@ -1585,91 +2229,6 @@ paths:
           description: Invalid status value
           content: { }
 
-  /log/list_log_user_activity.php:
-    get:
-      tags:
-        - log/user_activity
-      summary: (Not In use) List Log - User Activity Only
-      description: "(Not In use) This is to show user activity log according to User ID"
-      operationId: list_log_user_activity
-      parameters:
-        - name: company_id
-          in: query
-          description: company_id, e.g 25,27...
-          style: form
-          required: true
-          schema:
-            type: integer
-        - name: user_id
-          in: query
-          description: user_id, e.g 374,...
-          style: form
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/lock'
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/lock'
-        "400":
-          description: Invalid status value
-          content: {}
-
-  /log/add_log_user_activity.php:
-    post:
-      tags:
-        - log/user_activity
-      summary: (Not In use) Add Log - User Activity Only
-      description: "(Not In use) This is to add user activity log"
-      operationId: add_log_user_activity
-      parameters:
-        - name: company_id
-          in: query
-          description: company_id, e.g. 25,27,...
-          style: form
-          required: true
-          schema:
-            type: integer
-        - name: user_id
-          in: query
-          description: user_id, e.g. 374,...
-          style: form
-          required: true
-          schema:
-            type: integer
-        - name: description
-          in: query
-          description: Log text, e.g. Unlocked lock no. 1234, request to access lock 1234
-          style: form
-          schema:
-            type: string
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/lock'
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/lock'
-        "400":
-          description: Invalid status value
-          content: {}
-
   /log/list_log_lock_activity.php:
     get:
       tags:
@@ -1682,6 +2241,47 @@ paths:
         - name: company_id
           in: query
           description: company_id, e.g 25,27...
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          description: user_id, e.g 374,...
+          style: form
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+  /log/list_log_lock_activity_by_lock_id_user_id.php:
+    get:
+      tags:
+        - log/lock_activity
+      summary: "List Lock's Log - Request for Lock Access, Opening of Lock. "
+      description: "This is to list log according to User ID, including Request for Lock Access, Opening of Lock. <br>
+        This does not include whether opening lock success or failed."
+      operationId: list_log_lock_activity_by_lock_id_user_id
+      parameters:
+        - name: lock_id
+          in: query
+          description: lock_id, e.g 25,27...
           style: form
           required: true
           schema:
@@ -1843,6 +2443,54 @@ paths:
           description: Invalid status value
           content: {}
 
+  /lock/bluetooth/distance_from_lock.php:
+    get:
+      tags:
+        - geo_fencing
+      summary: Calculate distance from lock
+      description: "Input GPD latitude and longitude to get distance"
+      operationId: distance_from_lock
+      parameters:
+        - name: lock_id
+          in: query
+          description: lock_id
+          style: form
+          required: true
+          schema:
+            type: integer
+        - name: latitude
+          in: query
+          description: "latitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
+        - name: longitude
+          in: query
+          description: "longitude from gps, e.g 1.2769063"
+          style: form
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/lock'
+        "400":
+          description: Invalid status value
+          content: {}
+
+
   /sms/Twilio/response_sms.php:
     post:
       tags:
@@ -1878,17 +2526,17 @@ paths:
   /test/test_script.php:
     post:
       tags:
-      - test
+        - test
       summary: Test
       description: This is to test only
       operationId: test_script
       parameters:
-      - name: Body
-        in: query
-        description: Input code
-        style: form
-        schema:
-          type: string
+        - name: Body
+          in: query
+          description: Input code
+          style: form
+          schema:
+            type: string
       responses:
         "200":
           description: successful operation
@@ -1928,9 +2576,9 @@ components:
           type: string
           description: lock Status
           enum:
-          - placed
-          - approved
-          - delivered
+            - placed
+            - approved
+            - delivered
         complete:
           type: boolean
           default: false
@@ -1956,9 +2604,9 @@ components:
           type: string
           description: lock Status
           enum:
-          - placed
-          - approved
-          - delivered
+            - placed
+            - approved
+            - delivered
       xml:
         name: lock
     list_admin_request:
@@ -1971,12 +2619,12 @@ components:
           type: string
           description: lock Status
           enum:
-          - placed
-          - approved
-          - delivered
+            - placed
+            - approved
+            - delivered
       xml:
-        name: lock		
-	
+        name: lock
+
   securitySchemes:
     petstore_auth:
       type: oauth2

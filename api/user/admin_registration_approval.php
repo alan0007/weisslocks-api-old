@@ -98,6 +98,15 @@ if(isset($_REQUEST['user_id']) && isset($_REQUEST['company_id']) &&
                             break;
                         case 1:
                             $response['data']['approval_result'] = "approved";
+                            // Generate Verification Token
+                            if( !(isset($valid_user['auth_key'])) || $valid_user['auth_key'] == NULL ){
+                                if ($UserController->actionGenerateAuthenticationKey($_REQUEST['user_id'])){
+                                    $response['data']['auth_key_generated'] = TRUE;
+                                }
+                                else{
+                                    $response['data']['auth_key_generated'] = FALSE;
+                                }
+                            }
                             break;
                         case 2:
                             $response['data']['approval_result'] = "rejected";

@@ -46,43 +46,55 @@ if( isset($_REQUEST['phone_number']) && isset($_REQUEST['country_code']) && isse
     $Sms365Controller = new Sms365Controller();
     $TwilioSMSController = new TwilioSMSController();
 
-    $totp_now = $TotpController->actionGenerateTotp($user_id);
-    //    $response['data']['otp_setting'] = $totp;
-    $response['data']['otp_interval'] = $TotpController->interval;
-    $response['data']['otp_generated'] = $totp_now;
+//    try{
+        $totp_now = $TotpController->actionGenerateTotp($user_id);
+        //    $response['data']['otp_setting'] = $totp;
+        $response['data']['otp_interval'] = $TotpController->interval;
+        $response['data']['otp_generated'] = $totp_now;
 
-    $message = $TotpController->actionSmsMessage($totp_now);
+        $message = $TotpController->actionSmsMessage($totp_now);
 
-    // Insert into totp_token
-    if ( $insert_token = $TotpController->actionInsert($user_id,$totp_now,$datetime) ){
-        $response['data']['otp']['insertion'] = $insert_token;
-        $token = $TotpController->actionVerifyTotp($user_id,$totp_now);
-        unset($token['_id']);
-        $response['data']['otp'] = $token;
-        $response['status'] = 'true';
-    }
-    else{
-        $response['error'] = 'Token insertion failed';
-        exit(json_encode($response, JSON_PRETTY_PRINT));
-    }
+        // Insert into totp_token
+        if ( $insert_token = $TotpController->actionInsert($user_id,$totp_now,$datetime) ){
+            $response['data']['otp']['insertion'] = $insert_token;
+            $token = $TotpController->actionVerifyTotp($user_id,$totp_now);
+            unset($token['_id']);
+            $response['data']['otp'] = $token;
+            $response['status'] = 'true';
+        }
+        else{
+            $response['error'] = 'Token insertion failed';
+            exit(json_encode($response, JSON_PRETTY_PRINT));
+        }
 
-    $phone_number_with_country_code_plus = '+'.$_REQUEST['country_code'].$_REQUEST['phone_number'];
-    $phone_number_with_country_code_no_plus = $_REQUEST['country_code'].$_REQUEST['phone_number'];
+        $phone_number_with_country_code_plus = '+'.$_REQUEST['country_code'].$_REQUEST['phone_number'];
+        $phone_number_with_country_code_no_plus = $_REQUEST['country_code'].$_REQUEST['phone_number'];
 
-    // Send SMS
-    //    $sms_result = $TwilioSMSController->sendSMS($_REQUEST['phone_number'],$message);
-    //    $sms_result = $Sms365Controller->sendSMS($_REQUEST['phone_number'],$message);
-    $sms_result = $TwilioSMSController->sendSMS($phone_number_with_country_code_plus,$message);
-    $response['data']['sms_result'] = $sms_result;
+        // Send SMS
+        //    $sms_result = $TwilioSMSController->sendSMS($_REQUEST['phone_number'],$message);
+        //    $sms_result = $Sms365Controller->sendSMS($_REQUEST['phone_number'],$message);
+        try {
+            $sms_result = $TwilioSMSController->sendSMS($phone_number_with_country_code_plus, $message);
+            $response['data']['sms_result'] = $sms_result;
+        }
+        catch(Exception $e){
+            $response['error'] = $e;
+            $response['data']['sms_result'] = "Send SMS Fatal error. Uncaught exception";
+            $response['status'] = 'false';
+        }
 
-    if( isset($sms_result) && $sms_result != null ){
-        $response['status'] = 'true';
-        unset($response['error']);
-    }
-    else{
-        $response['error'] = 'SMS failed';
-        $response['status'] = 'true';
-    }
+        if( isset($sms_result) && $sms_result != null ){
+            $response['status'] = 'true';
+            unset($response['error']);
+        }
+        else{
+            $response['error'] = 'SMS failed';
+            $response['status'] = 'false';
+        }
+//    }
+//    catch(Exception $e) {
+//        $response['error'] = $e;
+//    }
 }
 
 // Display JSON

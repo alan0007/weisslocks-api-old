@@ -59,20 +59,40 @@
 						<a class="<?php echo $file_name == 'company' || $file_name == 'managecompany' ? 'active' : ''; ?>" href="company.php"><i class="fa fa-building fa-fw"></i>Company</a>
 					</li>
 					<li>
-						<a class="<?php echo $file_name == 'locks' || $file_name == 'managelocks' ? 'active' : ''; ?>" href="locks.php"><i class="fa fa-lock fa-fw"></i>Locks</a>
-					</li>
-					<li>
 						<a class="<?php echo $file_name == 'keys' || $file_name == 'managekeys' ? 'active' : ''; ?>" href="keys.php"><i class="fa fa-key fa-fw"></i>Keys</a>
 					</li>
-					<li>
-						<a class="<?php echo $file_name == 'lockgroup' || $file_name == 'manage_lockgroup' ? 'active' : ''; ?>" href="lockgroup.php"><i class="fa fa-tag fa-fw"></i>Lock Group</a>
-					</li>
+
 					<li>
 						<a class="<?php echo $file_name == 'keygroup' || $file_name == 'manage_keygroup' ? 'active' : ''; ?>" href="keygroup.php"><i class="fa fa-tag fa-fw"></i>Key Group</a>
 					</li>
 					<li>
 						<a class="<?php echo $file_name == 'key_and_lock_group_pairing' || $file_name == 'manage_key_and_lock_group_pairing' ? 'active' : ''; ?>" href="key_and_lock_group_pairing.php"><i class="fa fa-tags fa-fw"></i><!--Key Group and Lock Group Pairing--> Access Control </a>
 					</li>
+
+                        <li>
+                            <a class="<?php echo $file_name == 'locks' || $file_name == 'locks_manage' ? 'active' : ''; ?>" href="locks.php"><i class="fa fa-lock fa-fw"></i>Locks</a>
+                        </li>
+                        <li>
+                            <a class="<?php echo $file_name == 'lockgroup' || $file_name == 'manage_lockgroup' ? 'active' : ''; ?>" href="lockgroup.php"><i class="fa fa-tag fa-fw"></i>Lock Group</a>
+                        </li>
+
+                        <!-- Added 2020 -->
+                        <li>
+                            <a class="<?php echo $file_name == 'lock_approval_setting' || $file_name == 'lock_approval_setting_manage' ? 'active' : ''; ?>" href="lock_approval_setting.php"><i class="fa fa-tag fa-fw"></i>Lock Approval Setting</a>
+                        </li>
+
+                        <li>
+                            <a class="<?php echo $file_name == 'lock_request_approval_for_normal_access' || $file_name == 'lock_request_approval_for_normal_access' ? 'active' : ''; ?>" href="lock_request_approval_for_normal_access.php"><i class="fa fa-tag fa-fw"></i>Lock Request Approval For Normal Access</a>
+                        </li>
+
+                        <li>
+                            <a class="<?php echo $file_name == 'lock_request_approval_for_special_access' || $file_name == 'lock_request_approval_for_special_access' ? 'active' : ''; ?>" href="lock_request_approval_for_special_access.php"><i class="fa fa-tag fa-fw"></i>Lock Request Approval For Special Access</a>
+                        </li>
+
+                        <li>
+                            <a class="<?php echo $file_name == 'lock_request_approval_for_second_approval' || $file_name == 'lock_request_approval_for_second_approval' ? 'active' : ''; ?>" href="lock_request_approval_for_second_approval.php"><i class="fa fa-tag fa-fw"></i>Lock Request Approval For 2nd Approval</a>
+                        </li>
+
 					<?php if($_SESSION['role'] == 1) { ?>
 						<li>
 							<a class="<?php echo $file_name == 'payment' || $file_name == 'managepayment' ? 'active' : ''; ?>" href="payment.php"><i class="fa fa-dollar fa-fw"></i>Payment</a> 
